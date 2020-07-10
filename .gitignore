@@ -1,0 +1,15 @@
+.rExclude
+.rInclude
+backups
+chromedriver
+cmatrix
+color-scripts
+extBackup.sh
+gay
+geckodriver
+git-prompt.sh
+runZinit.sh
+screenshot.sh
+tealdeer
+tests
+todo.txt-cli
