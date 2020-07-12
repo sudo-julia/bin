@@ -1,5 +1,4 @@
 #!/bin/env bash
-set -euo pipefail
 # script to update pip, meant for integration in `u`
 # DO NOT RUN AS SUPERUSER
 

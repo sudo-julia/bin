@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-DATE=$(date "+%d%m%y")
+DATE=$(date "+%m%d%y")
 DIR=/home/jam/Documents/Misc/Installed/$DATE
 
 mkdir "$DIR"

@@ -15,11 +15,11 @@ else
     printf 'No updates to Arch News.\n'
 fi
 
-printf 'Proceed with main update? '; read -r response
+printf ':: Proceed with main update? [Y/n] '; read -r response
 case $response in
     y|Y)
 	pacman -Syu
-	printf 'Also update AUR packages? '; read -r response
+	printf ':: Also update AUR packages? [Y/n] '; read -r response
 	case $response in
 	    y|Y)
 		sudo -u jam yay -Syua  ;;
@@ -33,16 +33,16 @@ esac
 
 lastDate=$(cat /home/jam/.zinit/.lastDate)
 currentDate=$(date "+%y%m%d")
+##TODO Kill sudo when entering here to negate the extra sudo calls
 if [ $((lastDate + 7)) -lt "$currentDate" ]; then
     sudo -u jam zsh /home/jam/bin/runZinit.sh
     printf '\nzinit updated, moving onto tldr cache.\n'
-    /usr/bin/tldr --update
+    sudo -u jam /usr/bin/tldr --update
     /home/jam/bin/get-installed.sh
-	/home/jam/bin/update-pip.sh
+	sudo -u jam /home/jam/bin/update-pip.sh
     printf "%s\n" "$currentDate" > /home/jam/.zinit/.lastDate
     printf "Next full update will run on or after %d.\n" "$(( currentDate + 7 ))"
-## TODO !! Add updater for cargo
+## TODO Add updater for cargo and checks for if anything here fails
 fi
 
 exit 0
-
