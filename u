@@ -31,7 +31,7 @@ case $response in
 	exit 0
 esac
 
-lastDate=$(cat /home/jam/.zinit/.lastDate)
+lastDate=$(cat /home/jam/bin/.lastDate)
 currentDate=$(date "+%y%m%d")
 ##TODO Kill sudo when entering here to negate the extra sudo calls
 if [ $((lastDate + 7)) -lt "$currentDate" ]; then
@@ -40,7 +40,7 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
     sudo -u jam /usr/bin/tldr --update
     /home/jam/bin/get-installed.sh
 	sudo -u jam /home/jam/bin/update-pip.sh
-    printf "%s\n" "$currentDate" > /home/jam/.zinit/.lastDate
+    printf "%s\n" "$currentDate" > /home/jam/bin/.lastDate
     printf "Next full update will run on or after %d.\n" "$(( currentDate + 7 ))"
 ## TODO Add updater for cargo and checks for if anything here fails
 fi
