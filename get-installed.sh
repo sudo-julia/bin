@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DATE=$(date "+%m%d%y")
+DATE=$(date "+%y%m%d")
 DIR=/home/jam/Documents/Misc/Installed/$DATE
 
 mkdir "$DIR"
