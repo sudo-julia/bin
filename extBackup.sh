@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# back up shit to external drive
 
 LOGLOC="/tmp/extBackup-$(date "+%s").log"
 
+# TODO check exit code directly and call operation as arg of exitCheck
 exitCheck () {
-	if [ "$EXIT" != 0 ]; then
+	if [ "$?" -ne 0 ]; then
 		exitErorr
 	else
 		return
@@ -13,7 +15,6 @@ exitCheck () {
 
 exitErorr () {
     printf "\nError! Exiting script!\n"
-    logCheck
 }
 
 unmountClose () {
@@ -29,17 +30,13 @@ else
     mount /dev/mapper/external /mnt
 	rsync -aucPv \
 	--exclude-from=/home/jam/bin/.rExclude --include-from=/home/jam/bin/.rInclude \
-	--delete --delete-excluded /home/jam /mnt/home/jam --log-file="$LOGLOC"; EXIT=$?
+	--delete --delete-excluded /home/jam /mnt/home/jam --log-file="$LOGLOC"
 	exitCheck
 
 	rsync -apPy /etc/ /mnt/etc/
 	exitCheck
 
 	rsync -apPy /var/mnt/var/
-	if [ "$EXIT" != 0 ]; then
-	    exitErorr
-	else
-	    unmountClose
-	fi
+	exitCheck
 fi
 exit 0

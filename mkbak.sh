@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # make backups of files if given, if not find files to backup
+
 #TODO split this var into lines and find way to avoid var alltogether
 mkrt="^/bin|^/boot|^/dev|^/etc|^/home$|^/mnt|^/opt|^/proc|^/run|^/root|^/srv|^/sys|tmp|^/usr|^/var"
 

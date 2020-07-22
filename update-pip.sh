@@ -12,4 +12,3 @@ pip list -o | grep -v '\^-e' | tee ~/.local/lib/python3.8/installed/"$(date +\"%
 
 printf "Pip packages upgraded.\n"
 exit 0
-

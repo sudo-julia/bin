@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 set -euo pipefail
+# set brightness to minimum or maximum value specified
 
 EXT=$( xrandr -q | grep ' connected' | head -n 1 | cut -d ' ' -f1 )
 if [[ $1 == '--min' ]]; then

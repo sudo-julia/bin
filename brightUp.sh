@@ -1,12 +1,13 @@
 #!/usr/bin/env zsh
 set -euo pipefail
-#EXT=$( xrandr -q | grep ' connected' | head -n 1 | cut -d' ' -f1 ) # before
-EXT=$( xrandr -q | awk 'FNR == 2 {print $1}' ) # after
+# raise system brightness, use xrandr if ext monitor
+
+EXT=$( xrandr -q | awk 'FNR == 2 {print $1}' )
 if [[ $EXT == 'DP-0' ]]; then
 	xbacklight -inc 5
 	exit 0
 fi
-# alt: xrandr -q --verbose | awk -F':' '/Bright/ {print $2' | head -n1
+# alt: xrandr -q --verbose | awk -F':' '/Bright/ {print $2}' | head -n1
 XRAN=$( xrandr -q --verbose | grep -A 5 "$EXT" | tail -n 1 | cut -d':' -f2 )
 if (( XRAN >= 1.0 )); then
 	exit 0

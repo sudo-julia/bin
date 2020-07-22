@@ -1,2 +1,2 @@
-# my lil bad lil scripts
-# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+# my bad lil scripts
+# ~ ~ ~ ~ ~ ~ ~ ~ ~ ~

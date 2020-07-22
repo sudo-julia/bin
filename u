@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# update system, calls aur sep w extra util for aux programs (date-based) at end
 
 informant check; INF_UPDATES=$?
 if [[ $INF_UPDATES != 0 ]]; then
