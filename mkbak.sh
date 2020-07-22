@@ -4,7 +4,7 @@
 mkrt="^/bin|^/boot|^/dev|^/etc|^/home$|^/mnt|^/opt|^/proc|^/run|^/root|^/srv|^/sys|tmp|^/usr|^/var"
 
 if [ "$#" -eq 0 ]; then
-	readlink -e "$HOME"/{,.}*/*/*/* \
+	readlink -e "$HOME"/{,.}*/{,*}/{,*}/{,*} \
 	| grep -Evi "chromium|^/lost\+found|$mkrt" \
 	| fzf -m --height=50% --border --prompt='backup: ' --marker='*' \
 	| xargs -P 4 -I % sh -c "cp -a -- % %.bak && echo 'created %.bak'"
