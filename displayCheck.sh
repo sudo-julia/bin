@@ -10,7 +10,7 @@ CONNECTED=$( xrandr | awk '/HDMI-0/ {print $2}' )
 if [ "$CONNECTED" == "connected" ]; then
     xrandr --output HDMI-0 --auto --left-of DP-0
 #TODO relocate the wallpapers or use a symlink to fit on one line w/o var
-	feh --bg-fill "$WALLPAPERS"/desktop01.png "$WALLPAPERS"/desktop02.png 
+	feh --bg-fill "$WALLPAPERS"/desktop01.png "$WALLPAPERS"/desktop02.png
     launch_picom
     "$HOME"/.config/polybar/scripts/launch.sh
 elif [ "$CONNECTED" == "disconnected" ]; then

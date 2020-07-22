@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # make backups of files if given, if not find files to backup
-alias fzf="fzf -m --height=50% --border --prompt='backup: ' --marker='*'"
-roots='boot|dev|etc|mnt|opt|proc|/usr|/usr/'
+#TODO split this var into lines and find way to avoid var alltogether
+mkrt="^/bin|^/boot|^/dev|^/etc|^/home$|^/mnt|^/opt|^/proc|^/run|^/root|^/srv|^/sys|tmp|^/usr|^/var"
 
 if [ "$#" -eq 0 ]; then
-	readlink -e "$HOME"/{,.}*/*/*/* | grep -Evi "chrome|chromium|$roots" | fzf \
+	readlink -e "$HOME"/{,.}*/*/*/* \
+	| grep -Evi "chromium|^/lost\+found|$mkrt" \
+	| fzf -m --height=50% --border --prompt='backup: ' --marker='*' \
 	| xargs -P 4 -I % sh -c "cp -a -- % %.bak && echo 'created %.bak'"
 fi
 
@@ -14,5 +16,4 @@ while (( $# )); do
 	shift
 done
 
-unalias fzf
 (exit 0)
