@@ -41,6 +41,14 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
     sudo -u jam /usr/bin/tldr --update
     /home/jam/bin/get-installed.sh
 	sudo -u jam /home/jam/bin/update-pip.sh
+	paccache -d
+	printf ':: Clear pacman cache? '; read -r response
+	case $response in
+		y|Y)
+			paccache -r  ;;
+		*)
+			printf 'Pacman cache cleared.\n'
+		esac
     printf "%s\n" "$currentDate" > /home/jam/bin/.lastDate
     printf "Next full update will run on or after %d.\n" "$(( currentDate + 7 ))"
 ## TODO Add updater for cargo and checks for if anything here fails
