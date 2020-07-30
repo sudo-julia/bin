@@ -45,7 +45,7 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
 	printf ':: Clear pacman cache? '; read -r response
 	case $response in
 		y|Y)
-			paccache -r  ;;
+			paccache -rv  ;;
 		*)
 			printf 'Pacman cache cleared.\n'
 		esac
