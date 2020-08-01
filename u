@@ -34,11 +34,11 @@ esac
 
 lastDate=$(cat /home/jam/bin/.lastDate)
 currentDate=$(date "+%y%m%d")
-##TODO Kill sudo when entering here to negate the extra sudo calls
+# TODO Kill sudo when entering here to negate the extra sudo calls
 if [ $((lastDate + 7)) -lt "$currentDate" ]; then
     sudo -u jam zsh /home/jam/bin/runZinit.sh
-    printf '\nzinit updated, moving onto tldr cache.\n'
     sudo -u jam /usr/bin/tldr --update
+	sudo -u jam vim +PluginInstall +qall
     /home/jam/bin/get-installed.sh
 	sudo -u jam /home/jam/bin/update-pip.sh
 	paccache -d
@@ -51,7 +51,7 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
 		esac
     printf "%s\n" "$currentDate" > /home/jam/bin/.lastDate
     printf "Next full update will run on or after %d.\n" "$(( currentDate + 7 ))"
-## TODO Add updater for cargo and checks for if anything here fails
+# TODO Add updater for cargo,npm and checks for if anything here fails
 fi
 
 exit 0

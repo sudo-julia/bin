@@ -28,6 +28,7 @@ if [ "$(whoami)" != "root" ]; then
 else
     cryptsetup open /dev/sdc external
     mount /dev/mapper/external /mnt
+
 	rsync -aucPv \
 	--exclude-from=/home/jam/bin/.rExclude --include-from=/home/jam/bin/.rInclude \
 	--delete --delete-excluded /home/jam /mnt/home/jam --log-file="$LOGLOC"
