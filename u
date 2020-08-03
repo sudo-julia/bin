@@ -39,10 +39,14 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
     sudo -u jam zsh /home/jam/bin/runZinit.sh
     sudo -u jam /usr/bin/tldr --update
 	sudo -u jam vim +PluginInstall +qall
+	printf 'Vim plugins updated.\n'
     /home/jam/bin/get-installed.sh
 	sudo -u jam /home/jam/bin/update-pip.sh
+	printd 'Python modules updated.\n'
+	sudo -u jam npm update -g
+	printf 'Npm updated.\n'
 	paccache -d
-	printf ':: Clear pacman cache? '; read -r response
+	printf ':: Clear pacman cache? [Y/n] '; read -r response
 	case $response in
 		y|Y)
 			paccache -rv  ;;
@@ -51,7 +55,8 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
 		esac
     printf "%s\n" "$currentDate" > /home/jam/bin/.lastDate
     printf "Next full update will run on or after %d.\n" "$(( currentDate + 7 ))"
-# TODO Add updater for cargo,npm and checks for if anything here fails
+# TODO Add updater for cargo and checks for if anything here fails
+#      this can be `if [ cmd ]; then \nprintf'cmd updated\n'`
 fi
 
 exit 0
