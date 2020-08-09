@@ -40,8 +40,8 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
     sudo -u jam /usr/bin/tldr --update
 	sudo -u jam vim +PluginInstall +qall
 	printf 'Vim plugins updated.\n'
-    /home/jam/bin/get-installed.sh
-	sudo -u jam /home/jam/bin/update-pip.sh
+    /home/jam/bin/getInstalled.sh
+	sudo -u jam /home/jam/bin/updatePip.sh
 	sudo -u jam npm update -g
 	printf 'Npm updated.\n'
 	paccache -d
