@@ -42,7 +42,6 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
 	printf 'Vim plugins updated.\n'
     /home/jam/bin/get-installed.sh
 	sudo -u jam /home/jam/bin/update-pip.sh
-	printd 'Python modules updated.\n'
 	sudo -u jam npm update -g
 	printf 'Npm updated.\n'
 	paccache -d

@@ -3,7 +3,7 @@
 
 launch_picom () {
     killall -q picom
-    nohup picom --experimental-backends 2>/dev/null &
+	nohup picom --experimental-backends </dev/null >/dev/null 2>&1 &
 }
 WALLPAPERS="$HOME/Pictures/Wallpapers"
 
