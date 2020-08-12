@@ -6,6 +6,7 @@ cmatrix
 color-scripts
 geckodriver
 git-prompt.sh
+phantomjs
 runZinit.sh
 screenshot.sh
 tests

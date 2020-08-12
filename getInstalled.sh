@@ -2,10 +2,10 @@
 # send lists of installed programs to dir specified by date
 
 DATE=$(date "+%y%m%d")
-DIR=/home/jam/Documents/Misc/Installed/$DATE
+DIR=/home/jam/documents/misc/Installed/$DATE
 
 if [ -d "$DIR" ]; then
-	DIR=/home/jam/Documents/Misc/Installed/"$DATE".1
+	DIR=/home/jam/documents/misc/Installed/"$DATE".1
 fi
 
 mkdir "$DIR"

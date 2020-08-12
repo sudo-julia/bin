@@ -7,7 +7,12 @@ if [ "$(id -u)" == 0 ]; then
 	exit 1
 fi
 
-pip list -o | grep -v '\^-e' | tee ~/.local/lib/python3.8/installed/"$(date +\"%y%m%d\")" \
+if [ ! -d ~/.local/lib/python3.8/installed ]; then
+	mkdir ~/.local/lib/python3.8/installed
+fi
+
+# shellcheck disable=SC2046
+pip list -o | grep -v '\^-e' | tee ~/.local/lib/python3.8/installed/$(date +\"%y%m%d\") \
 | grep -Ev 'sdist|--|Latest\s' | cut -d' ' -f1 | xargs -r -n1 pip install --user -U
 
 printf "Pip packages upgraded.\n"
