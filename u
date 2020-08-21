@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# update system, calls aur sep w extra util for aux programs (date-based) at end
+# update system on arch, calls aur sep w extra util for aux programs (date-based) at end
+# requires informant, pacman-contrib and yay
+
+printPacdiff () {
+	if [ -s /tmp/pacnew.out ]; then
+		printf "\nNew pacnew files: %s\n" "$(cat /tmp/pacnew.out)"
+	else
+		:
+	fi
+}
 
 informant check; INF_UPDATES=$?
 if [[ $INF_UPDATES != 0 ]]; then
@@ -20,6 +29,7 @@ printf ':: Proceed with main update? [Y/n] '; read -r response
 case $response in
     y|Y)
 	pacman -Syu
+	pacdiff -o > /tmp/pacnew.out
 	printf ':: Also update AUR packages? [Y/n] '; read -r response
 	case $response in
 	    y|Y)
@@ -31,6 +41,7 @@ case $response in
 	printf 'Cancelling update.\n'
 	exit 0
 esac
+printPacdiff
 
 lastDate=$(cat /home/jam/bin/.lastDate)
 currentDate=$(date "+%y%m%d")
@@ -54,6 +65,7 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
 		esac
     printf "%s\n" "$currentDate" > /home/jam/bin/.lastDate
     printf "Next full update will run on or after %d.\n" "$(( currentDate + 7 ))"
+	printPacdiff
 # TODO Add updater for cargo and checks for if anything here fails
 #      this can be `if [ cmd ]; then \nprintf'cmd updated\n'`
 fi
