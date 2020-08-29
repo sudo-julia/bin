@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 # make backups of files if given, if not find files to backup
 
+# TODO change main to search for files in current dir
+# TODO move current main to a flag asking to search ~
 # TODO split this var into lines and find way to avoid var alltogether
 mkrt="^/bin|^/boot|^/dev|^/etc|^/home$|^/mnt|^/opt|^/proc|^/run|^/root|^/srv|^/sys|tmp|^/usr|^/var"
+MKBAK_HELP="Usage:
+  mkbak.sh [options...] [FILES]
+
+  If no arguments are given, mkbak will search for files to backup in $HOME
+
+Flags:
+  -h, --help        Print this help
+  -o, --output      Write to output file instead of ${1}.bak"
 
 main () {
 	if [ "$#" -eq 0 ]; then
@@ -41,16 +51,10 @@ output_file() {
 	fi
 }
 
-# TODO Have help display text with one formatted `cat >> EOF` instead of all these calls
 # TODO improve this help section to be more professional looking
 case $1 in
 	-h|--help)
-		printf "Usage:\n  mkbak.sh [options...] [FILES]\n"
-		printf "\nIf no arguments are given, mkbak will search for files to backup in \$HOME\n"
-		printf "If arguments are given with no '-o' flag, mkbak will make cop{y,ies} of any file{,s} given with the extension '.bak'\n"
-		printf "Flags:\n"
-		printf "  -h, --help        Print this help\n"
-		printf "  -o, --output      Write to output file instead of \${1}.bak\n"
+		printf "%s" "$MKBAK_HELP"
 		;;
 	-o|--output)
 		output_file "$@"

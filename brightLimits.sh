@@ -1,4 +1,6 @@
 #!/usr/bin/env zsh
+
+# TODO move brightUp and brightDown to be in here as one script
 set -euo pipefail
 # set brightness to minimum or maximum value specified
 
