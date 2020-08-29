@@ -31,13 +31,13 @@ else
 
 	rsync -aucPv \
 	--exclude-from=/home/jam/bin/.rExclude --include-from=/home/jam/bin/.rInclude \
-	--delete --delete-excluded /home/jam /mnt/home/jam --log-file="$LOGLOC"
+	--delete --delete-excluded /home/jam /mnt/home --log-file="$LOGLOC"
 	exitCheck
 
-	rsync -apPy /etc/ /mnt/etc/
+	rsync -apPy /etc /mnt
 	exitCheck
 
-	rsync -apPy /var/mnt/var/
+	rsync -apPy /var /mnt
 	exitCheck
 fi
 exit 0
