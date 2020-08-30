@@ -14,7 +14,6 @@ MKBAK_HELP="Usage:
 Flags:
   -h, --help        Print this help
   -o, --output      Write to output file instead of ${1}.bak"
-VALID_FLAGS=('-h' '--help' '-o' '--output')
 
 main () {
 	if [ "$#" -eq 0 ]; then
@@ -54,19 +53,14 @@ output_file() {
 }
 
 # TODO improve this help section to be more professional looking
-if [[ "${VALID_FLAGS[*]}" =~ $1 ]]; then # i'm aware this is very hacky
-	case $1 in
-		-h|--help)
-			printf "%s\n" "$MKBAK_HELP"
-			;;
-		-o|--output)
-			output_file "$@"
-			;;
-		*)
-			main "$@"
-			;;
-	esac
-else
-	printf "%s is not a valid argument! Try '--help' for more options.\n" "$1"
-	(exit 1)
-fi
+case $1 in
+	-h|--help)
+		printf "%s\n" "$MKBAK_HELP"
+		;;
+	-o|--output)
+		output_file "$@"
+		;;
+	*)
+		main "$@"
+		;;
+esac
