@@ -3,6 +3,7 @@
 # TODO move brightUp and brightDown to be in here as one script
 set -euo pipefail
 # set brightness to minimum or maximum value specified
+# this shit is busted do not trust it
 
 HDMI_STATUS=$( xrandr | awk '/HDMI-0/{print $2}' )
 if [[ "$HDMI_STATUS" == 'disconnected' ]]; then

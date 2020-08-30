@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 # lower system brightness, use xrandr if ext monitor
+# this shit is busted do not trust it
 
 EXT=$(xrandr | awk 'FNR == 2 {print $1}')
 if [[ "$(xrandr | awk '/HDMI-0/{print $2}')" == 'disconnected' ]]; then
@@ -8,7 +9,7 @@ if [[ "$(xrandr | awk '/HDMI-0/{print $2}')" == 'disconnected' ]]; then
 	exit 0
 fi
 
-XRAN=$(xrandr --verbose | grep -A5 "$EXT" | tail -n1 | cut -d':' -f2)
+XRAN=$(xrandr --verbose | grep -m1 -A5 "$EXT" | tail -n1 | cut -d':' -f2)
 if ((XRAN >= 0.25)); then # TODO change this to a bc command
 	XRAN=$(awk "BEGIN {print ($XRAN - 0.05)}")
 	xrandr --output "$EXT" --brightness "$XRAN"

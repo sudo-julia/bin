@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # make backups of files if given, if not find files to backup
 
+# TODO expand invalid args checker to allow multiple flags
 # TODO change main to search for files in current dir
 # TODO move current main to a flag asking to search ~
 # TODO split this var into lines and find way to avoid var alltogether
@@ -13,10 +14,11 @@ MKBAK_HELP="Usage:
 Flags:
   -h, --help        Print this help
   -o, --output      Write to output file instead of ${1}.bak"
+VALID_FLAGS=('-h' '--help' '-o' '--output')
 
 main () {
 	if [ "$#" -eq 0 ]; then
-		readlink -e "$HOME"/{,.}*/{,*}/{,*}/{,*} \
+		readlink -e "$HOME"/{,.}*/{,.,*}/{,*}/{,*} \
 		| grep -Evi "chromium|^/lost\+found|$mkrt" \
 		| fzf -m --height=50% --border --prompt='backup: ' --marker='*' \
 		| xargs -P 4 -I % sh -c "cp -a -- % %.bak && echo 'created %.bak'"
@@ -52,14 +54,19 @@ output_file() {
 }
 
 # TODO improve this help section to be more professional looking
-case $1 in
-	-h|--help)
-		printf "%s" "$MKBAK_HELP"
-		;;
-	-o|--output)
-		output_file "$@"
-		;;
-	*)
-		main "$@"
-		;;
-esac
+if [[ "${VALID_FLAGS[*]}" =~ $1 ]]; then # i'm aware this is very hacky
+	case $1 in
+		-h|--help)
+			printf "%s\n" "$MKBAK_HELP"
+			;;
+		-o|--output)
+			output_file "$@"
+			;;
+		*)
+			main "$@"
+			;;
+	esac
+else
+	printf "%s is not a valid argument! Try '--help' for more options.\n" "$1"
+	(exit 1)
+fi
