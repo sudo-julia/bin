@@ -14,7 +14,7 @@ exitCheck () {
 }
 
 exitErorr () {
-    printf "\nError! Exiting script!\n"
+    printf -- "\\nError! Exiting script!\\n"
 }
 
 unmountClose () {
@@ -23,7 +23,7 @@ unmountClose () {
 }
 
 if [ "$(whoami)" != "root" ]; then
-    printf "Please run as root!\n"
+    printf -- "Please run as root!\\n"
     exit 1
 else
     cryptsetup open /dev/sdc external

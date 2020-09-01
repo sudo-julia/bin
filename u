@@ -5,7 +5,7 @@ set -euo pipefail
 
 printPacdiff () {
 	if [ "$PACDIFF_RUN" -eq 0 ] && [ -s /tmp/pacnew.out ]; then
-		printf "\nPacnew files: %s\n" "$(cat /tmp/pacnew.out)"
+		printf -- "\\nPacnew files: %s\\n" "$(cat /tmp/pacnew.out)"
 		PACDIFF_RUN=1
 		return
 	else
@@ -19,31 +19,31 @@ PACDIFF_RUN=0
 informant check; INF_UPDATES=$?
 if [[ $INF_UPDATES != 0 ]]; then
 	informant list
-	printf 'Read new bulletins? '; read -r response
+	printf -- 'Read new bulletins? '; read -r response
 	case $response in
 	    y|Y)
 		informant read	;;
 	    *)
-		printf 'Skipping read.\n'
+		printf -- 'Skipping read.\n'
 	esac
 else
-    printf 'No updates to Arch News.\n'
+    printf -- 'No updates to Arch News.\n'
 fi
 
-printf ':: Proceed with main update? [Y/n] '; read -r response
+printf -- ':: Proceed with main update? [Y/n] '; read -r response
 case $response in
     y|Y)
 	pacman -Syu
 	pacdiff -o > /tmp/pacnew.out
-	printf ':: Also update AUR packages? [Y/n] '; read -r response
+	printf -- ':: Also update AUR packages? [Y/n] '; read -r response
 	case $response in
 	    y|Y)
 		sudo -u jam yay -Syua  ;;
 	    *)
-		printf 'Skipping AUR packages.\n'
+		printf -- 'Skipping AUR packages.\n'
 	esac ;;
     *)
-	printf 'Cancelling update.\n'
+	printf -- 'Cancelling update.\n'
 	exit 0
 esac
 printPacdiff
@@ -55,24 +55,24 @@ if [ $((lastDate + 7)) -lt "$currentDate" ]; then
     sudo -u jam zsh /home/jam/bin/runZinit.sh
     sudo -u jam /usr/bin/tldr --update
 	sudo -u jam vim +PluginInstall +qall
-	printf 'Vim plugins updated.\n'
+	printf -- 'Vim plugins updated.\n'
     /home/jam/bin/getInstalled.sh
 	sudo -u jam /home/jam/bin/updatePip.sh
 	sudo -u jam npm update -g
-	printf 'Npm updated.\n'
+	printf -- 'Npm updated.\n'
 	paccache -d
-	printf ':: Clear pacman cache? [Y/n] '; read -r response
+	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
 	case $response in
 		y|Y)
 			paccache -rv  ;;
 		*)
-			printf 'Pacman cache cleared.\n'
+			printf -- 'Pacman cache cleared.\n'
 		esac
-    printf "%s\n" "$currentDate" > /home/jam/bin/.lastDate
-    printf "Next full update will run on or after %d.\n" "$(( currentDate + 7 ))"
+    printf -- "%s\\n" "$currentDate" > /home/jam/bin/.lastDate
+    printf -- "Next full update will run on or after %d.\\n" "$(( currentDate + 7 ))"
 	printPacdiff
 # TODO Add updater for cargo and checks for if anything here fails
-#      this can be `if [ cmd ]; then \nprintf'cmd updated\n'`
+#      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
 fi
 
 exit 0
