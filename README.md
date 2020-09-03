@@ -15,6 +15,7 @@
 
 - `mkbak.sh` create backups of files
   - requires [fzf](https://github.com/junegunn/fzf)
+  - the fanciest wrapper to `cp` you'll ever see
 
 - `u` is my updater script
   - requires [informant](https://github.com/bradford-smith94/informant), [pacman-contrib](https://git.archlinux.org/pacman-contrib.git/about) and  [yay](https://github.com/Jguer/yay)

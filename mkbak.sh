@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
+# mkbak.sh, the World's Best `cp` wrapper
 # make backups of files if given, if not find files to backup
+# side note, i can't belive i didn't remember `find` existed till this push
 
-# TODO expand invalid args checker to allow multiple flags
-# TODO change main to search for files in current dir
-# TODO move current main to a flag asking to search ~
-# TODO split this var into lines and find way to avoid var alltogether
-mkrt="^/bin|^/boot|^/dev|^/etc|^/home$|^/mnt|^/opt|^/proc|^/run|^/root|^/srv|^/sys|tmp|^/usr|^/var"
+# TODO expand invalid args checker to allow multiple flags (getopts?)
+# TODO flag to specify dir to search '-d'
 MKBAK_HELP="Usage:
   mkbak.sh [options...] [FILES]
 
   If no arguments are given, mkbak will search for files to backup in $HOME
+  At the time, only one argument can be provided
 
 Flags:
   -h, --help        Print this help
@@ -17,10 +17,10 @@ Flags:
 
 main () {
 	if [ "$#" -eq 0 ]; then
-		readlink -e "$HOME"/{,.}*/{,.,*}/{,*}/{,*} \
-		| grep -Evi "chromium|^/lost\+found|$mkrt" \
-		| fzf -m --height=50% --border --prompt='backup: ' --marker='*' \
-		| xargs -P 4 -I % sh -c "cp -a -- % %.bak && echo 'created %.bak'"
+		find . \
+		| grep -v '^\.$' \
+		| fzf -m --height=30% --border --prompt='backup: ' --marker='*' \
+		| xargs -P 4 -I % sh -c "cp -av -- % %.bak"
 		return 0
 	fi
 
@@ -41,8 +41,7 @@ output_file() {
 		printf -- "Too many arguments given!\\n%s\\n" "$MKBAK_O_ERROR"
 		return 1
 	elif [ "$#" -eq 3 ] && [ "$1" = -o  ]; then
-		cp -a -- "$2" "${3}.bak"
-		printf -- "created %s from %s\\n" "${3}.bak" "$2"
+		cp -av -- "$2" "${3}.bak"
 		return 0
 	else
 		printf -- "Something went wrong! Flag in the wrong place?\\n"

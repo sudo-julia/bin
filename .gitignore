@@ -1,8 +1,8 @@
 .lastDate
 .rExclude
 .rInclude
+archives/
 chromedriver
-cmatrix
 color-scripts
 geckodriver
 git-prompt.sh
@@ -10,4 +10,3 @@ phantomjs
 runZinit.sh
 screenshot.sh
 tests
-todo.txt-cli
