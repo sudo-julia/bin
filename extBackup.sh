@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # back up shit to external drive
+# shellcheck disable=SC2181
 
-LOGLOC="/tmp/extBackup-$(date "+%s").log"
+LOGLOC="/tmp/extBackup-$( date "+%s" ).log"
 
 # TODO check exit code directly and call operation as arg of exitCheck
 exitCheck () {
@@ -22,7 +23,7 @@ unmountClose () {
     cryptsetup close external
 }
 
-if [ "$(whoami)" != "root" ]; then
+if [ "$( whoami )" != "root" ]; then
     printf -- "Please run as root!\\n"
     exit 1
 else

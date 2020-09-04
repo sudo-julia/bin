@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # send lists of installed programs to dir specified by date
 
-DATE=$(date "+%y%m%d")
+DATE=$( date "+%y%m%d" )
 DIR=/home/jam/documents/misc/Installed/$DATE
 
 if [ -d "$DIR" ]; then

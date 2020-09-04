@@ -5,7 +5,7 @@ set -euo pipefail
 
 printPacdiff () {
 	if [ "$PACDIFF_RUN" -eq 0 ] && [ -s /tmp/pacnew.out ]; then
-		printf -- "\\nPacnew files: %s\\n" "$(cat /tmp/pacnew.out)"
+		printf -- "\\nPacnew files: %s\\n" "$( cat /tmp/pacnew.out )"
 		PACDIFF_RUN=1
 		return
 	else
@@ -48,10 +48,10 @@ case $response in
 esac
 printPacdiff
 
-lastDate=$(cat /home/jam/bin/.lastDate)
+lastDate=$( cat /home/jam/bin/.lastDate )
 currentDate=$(date "+%y%m%d")
 # TODO Kill sudo when entering here to negate the extra sudo calls
-if [ $((lastDate + 7)) -lt "$currentDate" ]; then
+if [ $(( lastDate + 7 )) -lt "$currentDate" ]; then
     sudo -u jam zsh /home/jam/bin/runZinit.sh
     sudo -u jam /usr/bin/tldr --update
 	sudo -u jam vim +PluginInstall +qall
