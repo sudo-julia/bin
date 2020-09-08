@@ -23,7 +23,7 @@ unmountClose () {
     cryptsetup close external
 }
 
-if [ "$( whoami )" != "root" ]; then
+if [ "$( id -u )" -ne 0 ]; then
     printf -- "Please run as root!\\n"
     exit 1
 else
@@ -32,7 +32,7 @@ else
 
 	rsync -aucPv \
 	--exclude-from=/home/jam/bin/.rExclude --include-from=/home/jam/bin/.rInclude \
-	--delete --delete-excluded /home/jam /mnt/home --log-file="$LOGLOC"
+	--delete --delete-excluded /home/jam /mnt/home --log-file="${LOGLOC}"
 	exitCheck
 
 	rsync -apPy /etc /mnt

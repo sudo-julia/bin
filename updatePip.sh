@@ -12,7 +12,7 @@ if [ ! -d ~/.local/lib/python3.8/installed ]; then
 fi
 
 # shellcheck disable=SC2046
-pip list -o | grep -v '\^-e' | tee ~/.local/lib/python3.8/installed/$( date +\"%y%m%d\" ) \
+pip list -o | grep -v '\^-e' | tee ~/.local/lib/python3.8/installed/"$( date +\"%y%m%d\" )" \
 | grep -Ev 'sdist|--|Latest\s' | cut -d' ' -f1 | xargs -r -n1 pip install --user -U
 
 printf -- "Pip packages upgraded.\\n"

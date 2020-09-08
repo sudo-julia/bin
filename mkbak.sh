@@ -25,7 +25,7 @@ main () {
 	fi
 
 	while (( $# )); do
-		cp -av -- "$1" "${1}.bak"
+		cp -av -- "${1}" "${1}.bak"
 		shift
 	done
 	return 0
@@ -35,25 +35,25 @@ output_file() {
 	# yes, this is the exact same as just using `cp` but whatever i wanted to add more options
 	MKBAK_O_ERROR="Format is: mkbak.sh -o [FILE] [OUTPUT]"
 	if [ "$#" -lt 3 ]; then
-		printf -- "Not enough arguments given!\\n%s\\n" "$MKBAK_O_ERROR"
+		printf -- "Not enough arguments given!\\n%s\\n" "${MKBAK_O_ERROR}"
 		return 1
 	elif [ "$#" -gt 3 ]; then
-		printf -- "Too many arguments given!\\n%s\\n" "$MKBAK_O_ERROR"
+		printf -- "Too many arguments given!\\n%s\\n" "${MKBAK_O_ERROR}"
 		return 1
-	elif [ "$#" -eq 3 ] && [ "$1" = -o  ]; then
-		cp -av -- "$2" "${3}.bak"
+	elif [ "$#" -eq 3 ] && [ "${1}" = -o  ]; then
+		cp -av -- "${2}" "${3}.bak"
 		return 0
 	else
 		printf -- "Something went wrong! Flag in the wrong place?\\n"
-		printf -- "%s\\n" "$MKBAK_O_ERROR"
+		printf -- "%s\\n" "${MKBAK_O_ERROR}"
 		return 2
 	fi
 }
 
 # TODO improve this help section to be more professional looking
-case $1 in
+case "$1" in
 	-h|--help)
-		printf -- "%s\\n" "$MKBAK_HELP"
+		printf -- "%s\\n" "${MKBAK_HELP}"
 		;;
 	-o|--output)
 		output_file "$@"
