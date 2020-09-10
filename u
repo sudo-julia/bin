@@ -55,16 +55,16 @@ esac
 printPacdiff
 
 lastDate=$( cat /home/jam/bin/.lastDate )
-currentDate=$(date "+%y%m%d")
+currentDate=$( date "+%y%m%d" )
 nextDate=$(( lastDate + 7 ))
 # TODO Kill sudo when entering here to negate the extra sudo calls
 if [[ "${nextDate}" -lt "${currentDate}" ]]; then
-    sudo -u jam zsh /home/jam/bin/runZinit.sh
+    sudo -u jam zsh /home/jam/bin/runZinit.zsh
     sudo -u jam /usr/bin/tldr --update
 	sudo -u jam vim +PluginInstall +qall
 	printf -- 'Vim plugins updated.\n'
-    /home/jam/bin/getInstalled.sh
-	sudo -u jam /home/jam/bin/updatePip.sh
+    /home/jam/bin/getInstalled.bash
+	sudo -u jam /home/jam/bin/updatePip.bash
 	sudo -u jam npm update -g
 	printf -- 'Npm updated.\n'
 	paccache -d
