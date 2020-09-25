@@ -15,7 +15,7 @@ exitCheck () {
 }
 
 exitErorr () {
-    printf -- "\\nError! Exiting script!\\n"
+    printf -- '\n%s\n' "Error! Exiting script!"
 }
 
 unmountClose () {
@@ -24,7 +24,7 @@ unmountClose () {
 }
 
 if [ "$( id -u )" -ne 0 ]; then
-    printf -- "Please run as root!\\n"
+    printf -- '\n' "Please run as root!"
     exit 1
 else
     cryptsetup open /dev/sdc external

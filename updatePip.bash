@@ -3,7 +3,7 @@
 # DO NOT RUN AS SUPERUSER
 
 if [ "$( id -u )" == 0 ]; then
-	printf -- "Error! Do not run as root.\\nCancelling...\\n"
+	printf -- '%s\n%s\n' "Error! Do not run as root." "Cancelling..."
 	exit 1
 fi
 
@@ -15,5 +15,5 @@ fi
 pip list -o | grep -v '\^-e' | tee ~/.local/lib/python3.8/installed/"$( date +\"%y%m%d\" )" \
 | grep -Ev 'sdist|--|Latest\s' | cut -d' ' -f1 | xargs -r -n1 pip install --user -U
 
-printf -- "Pip packages upgraded.\\n"
+printf -- '%s\n' "Pip packages upgraded."
 exit 0
