@@ -4,7 +4,7 @@
 DATE=$( date "+%y%m%d" )
 DIR=/home/jam/documents/misc/Installed/${DATE}
 
-if [ -d "${DIR}" ]; then
+if [[ -d "${DIR}" ]]; then
 	DIR=/home/jam/documents/misc/Installed/"${DATE}".1
 fi
 

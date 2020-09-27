@@ -16,7 +16,7 @@ Flags:
   -o, --output      Write to output file instead of ${1}.bak"
 
 main () {
-	if [ "$#" -eq 0 ]; then
+	if [[ "$#" -eq 0 ]]; then
 		find . \
 		| grep -v '^\.$' \
 		| fzf -m --height=30% --border --prompt='backup: ' --marker='*' \
@@ -34,13 +34,13 @@ main () {
 output_file() {
 	# yes, this is the exact same as just using `cp` but whatever i wanted to add more options
 	MKBAK_O_ERROR="Format is: mkbak.sh -o [FILE] [OUTPUT]"
-	if [ "$#" -lt 3 ]; then
+	if [[ "$#" -lt 3 ]]; then
 		printf -- '%s\n%s\n' "Not enough arguments given!" "${MKBAK_O_ERROR}"
 		return 1
-	elif [ "$#" -gt 3 ]; then
+	elif [[ "$#" -gt 3 ]]; then
 		printf -- '%s\n%s\n' "Too many arguments given!" "${MKBAK_O_ERROR}"
 		return 1
-	elif [ "$#" -eq 3 ] && [ "${1}" = -o  ]; then
+	elif [[ "$#" -eq 3 ]] && [[ "${1}" = -o  ]]; then
 		cp -av -- "${2}" "${3}.bak"
 		return 0
 	else

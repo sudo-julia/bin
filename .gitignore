@@ -7,6 +7,7 @@ color-scripts
 geckodriver
 git-prompt.sh
 phantomjs
+newBrights.sh
 runZinit.zsh
 screenshot.bash
 tests

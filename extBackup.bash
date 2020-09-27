@@ -7,7 +7,7 @@ LOGLOC="/tmp/extBackup-$( date "+%s" ).log"
 
 # TODO check exit code directly and call operation as arg of exitCheck
 exitCheck () {
-	if [ "$?" -ne 0 ]; then
+	if [[ "$?" -ne 0 ]]; then
 		exitErorr
 	else
 		return
@@ -23,7 +23,7 @@ unmountClose () {
     cryptsetup close external
 }
 
-if [ "$( id -u )" -ne 0 ]; then
+if [[ "$( id -u )" -ne 0 ]]; then
     printf -- '\n' "Please run as root!"
     exit 1
 else

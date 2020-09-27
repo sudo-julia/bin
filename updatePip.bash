@@ -1,8 +1,8 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 # script to update pip, meant for integration in `u`
 # DO NOT RUN AS SUPERUSER
 
-if [ "$( id -u )" == 0 ]; then
+if [[ "$( id -u )" == 0 ]]; then
 	printf -- '%s\n%s\n' "Error! Do not run as root." "Cancelling..."
 	exit 1
 fi

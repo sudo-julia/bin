@@ -5,7 +5,7 @@ launch_picom () {
     killall -q picom
 	nohup picom --experimental-backends </dev/null >/dev/null 2>&1 &
 }
-WALLPAPERS="${HOME}/Pictures/Wallpapers"
+WALLPAPERS="${HOME}/documents/pictures/wallpapers"
 
 CONNECTED=$( xrandr | awk '/HDMI-0/ {print $2}' )
 if [ "${CONNECTED}" == connected ]; then
