@@ -4,6 +4,10 @@ set -euo pipefail
 # update system on arch, calls aur sep w extra util for aux programs (date-based) at end
 # requires informant, pacman-contrib and yay
 
+# if you're using this and you're not me, change this variable to your user
+#CURRENT_user=$( who | awk 'NR==1{print $1}' )
+user=jam
+
 printPacdiff () {
 	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
 		printf -- '\n%s %s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
@@ -59,13 +63,12 @@ currentDate=$( date "+%y%m%d" )
 nextDate=$(( lastDate + 7 ))
 # TODO Kill sudo when entering here to negate the extra sudo calls
 if [[ "${nextDate}" -lt "${currentDate}" ]]; then
-    sudo -u jam zsh /home/jam/bin/runZinit.zsh
-    sudo -u jam /usr/bin/tldr --update
-	sudo -u jam vim +PluginInstall +qall
+    sudo -u "${user}" zsh /home/jam/bin/runZinit.zsh
+    sudo -u "${user}" /usr/bin/tldr --update
+	sudo -u "${user}" vim +PluginInstall +qall
 	printf -- 'Vim plugins updated.\n'
     /home/jam/bin/getInstalled.bash
-	sudo -u jam /home/jam/bin/updatePip.bash
-	sudo -u jam npm update -g
+	sudo -u "${user}" /home/jam/bin/updatePip.bash
 	printf -- 'Npm updated.\n'
 	paccache -d
 	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
@@ -80,6 +83,13 @@ if [[ "${nextDate}" -lt "${currentDate}" ]]; then
 	printPacdiff
 # TODO Add updater for cargo and checks for if anything here fails
 #      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
+#### CARGO UPDATER PSEUDOCODE
+# if "~/.cargo" exists; then
+#     for dir that is not in {'bin', 'git', 'registry'}:
+#         (cd "${DIR}" && cargo update)
+# else
+#     :
+#
 fi
 
 exit 0
