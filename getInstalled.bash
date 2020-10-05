@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # send lists of installed programs to dir specified by date
+# TODO make git integration a flag
 
 user=jam
 BASEDIR=/home/"${user}"/documents/misc/installed
 DATE=$( date "+%y%m%d" )
 DIR=/home/"${user}"/documents/misc/installed/"${DATE}"
 
-# TODO make something to increment this instead of a one time fix
 if [[ -d "${DIR}" ]]; then
-	DIR=/home/"${user}"/documents/misc/installed/"${DATE}".1
+	DIR=/home/"${user}"/documents/misc/installed/"${DATE}"-"$( date '+%H:%M' )"
 fi
 
 if [[ ! -d "${BASEDIR}"/.git ]]; then
