@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # send lists of installed programs to dir specified by date
-<<<<<<< HEAD
 # TODO there has to be a cleaner way to do this instead of almost identical functions
 
 user=jam
@@ -79,4 +78,3 @@ pacman -Qm | cut -d' ' -f1 > "${DIR}"/aur
 diff -y "${DIR}"/no_version "${DIR}"/aur | awk '{print $2}' | sed '/</d' > "${DIR}"/no_aur
 ( cd "${BASEDIR}" && git add . && git commit -m "${user} $( date '+%c' )")
 printf -- '%s %s\n' "Installed programs backed up to" "${DIR}"
->>>>>>> a6ceceea438413f9fe164288c690bd68f9e58517
