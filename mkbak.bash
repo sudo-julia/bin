@@ -3,7 +3,7 @@
 # make backups of files if given, if not find files to backup
 # side note, i can't belive i didn't remember `find` existed till this push
 
-# TODO expand invalid args checker to allow multiple flags (getopts?)
+# TODO use getopts for better argument handling
 # TODO flag to specify dir to search '-d'
 MKBAK_HELP="Usage:
   mkbak.sh [options...] [FILES]
