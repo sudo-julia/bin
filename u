@@ -4,9 +4,11 @@ set -eo pipefail
 # update system on arch, calls aur sep w extra util for aux programs (date-based) at end
 # requires informant, pacman-contrib and yay
 
-# TODO date display at "next update on $date" is broken, possibly refers to old update
-# user=$( who | awk 'NR==1{print $1}' )
+# change the user you're updating for here
 user=jam
+# if you want extra updates to run automatically, place the file to read them from here
+# if this is unset, the program will ask if you'd like to update extras every time it's run
+path_to_lastdate=/home/"${user}"/bin/.lastDate
 
 # TODO Add updater for cargo and check for failures
 #      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
@@ -92,7 +94,7 @@ case "$response" in
 esac
 printPacdiff
 
-if [[ ! -s ~/bin/.lastDate ]]; then
+if [[ ! "${path_to_lastdate}" ]]; then
 	printf 'Update other programs? '; read -r response
 	response=$( echo "${response}" | tr '[:upper:]' '[:lower:]' )
 	if [[ "${response}" == y ]] || [[ "${response}" = yes ]]; then
@@ -100,8 +102,14 @@ if [[ ! -s ~/bin/.lastDate ]]; then
 	else
 		printf -- '%s\n' "Skipping extra updates."
 	fi
-else
-	lastDate=$( tail -n1 ~/bin/.lastDate )
+	exit 0
+elif [[ "${path_to_lastdate}" ]] && [[ ! -s "${path_to_lastdate}" ]]; then
+	# if variable is set but file doesn't exist, create it
+	echo '000000' > "${path_to_lastdate}"
+fi
+
+if [[ "${path_to_lastdate}" ]] && [[ -s "${path_to_lastdate}" ]]; then
+	lastDate=$( tail -n1 "${path_to_lastdate}" )
 	currentDate=$( date "+%y%m%d" )
 	# TODO nextdate can go over 31
 	nextDate=$(( lastDate + 7 ))

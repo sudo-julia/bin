@@ -3,13 +3,10 @@
 .rInclude
 archives/
 chromedriver
-color-scripts
+extras/
 geckodriver
 git-prompt.sh
 phantomjs
 newBrights.sh
 runZinit.zsh
 screenshot.bash
-tests
-mf-install
-mf-installcab
