@@ -1,12 +1,45 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 # update system on arch, calls aur sep w extra util for aux programs (date-based) at end
 # requires informant, pacman-contrib and yay
 
-# if you're using this and you're not me, change this variable to your user
-#CURRENT_user=$( who | awk 'NR==1{print $1}' )
+# TODO date display at "next update on $date" is broken, possibly refers to old update
+# user=$( who | awk 'NR==1{print $1}' )
 user=jam
+
+# TODO Add updater for cargo and check for failures
+#      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
+#### CARGO UPDATER PSEUDOCODE
+# if "~/.cargo" exists; then
+#     for dir that is not in {'bin', 'git', 'registry'}:
+#         (cd "${DIR}" && cargo update)
+# else
+#     :
+
+extraUpdates () {
+    sudo -u "${user}" zsh /home/jam/bin/runZinit.zsh
+    sudo -u "${user}" /usr/bin/tldr --update
+	sudo -u "${user}" vim +PluginInstall +qall
+	printf -- 'Vim plugins updated.\n'
+    /home/jam/bin/getInstalled.bash
+	sudo -u "${user}" /home/"${user}"/bin/updatePip.bash
+	printf -- 'Npm updated.\n'
+	paccache -d
+	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
+	case "$response" in
+		y|Y)
+			paccache -rv
+			printf -- 'Pacman cache cleared.\n'  ;;
+		*)
+			printf -- 'Skipping pacman cache.\n'
+		esac
+	if [[ "${1}" ]]; then
+		printf -- '%s\n' "${1}" >> /home/"${user}"/bin/.lastDate
+		printf -- 'Next full update will run on or after %d.\n' "${2}"
+	fi
+	printPacdiff
+}
 
 printPacdiff () {
 	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
@@ -20,6 +53,7 @@ printPacdiff () {
 }
 
 PACDIFF_RUN=0
+
 
 if [[ "$( id -u )" -ne 0 ]]; then
 	printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
@@ -58,38 +92,22 @@ case "$response" in
 esac
 printPacdiff
 
-lastDate=$( tail -n1 /home/jam/bin/.lastDate )
-currentDate=$( date "+%y%m%d" )
-nextDate=$(( lastDate + 7 ))
-# TODO Kill sudo when entering here to negate the extra sudo calls
-if [[ "${nextDate}" -lt "${currentDate}" ]]; then
-    sudo -u "${user}" zsh /home/jam/bin/runZinit.zsh
-    sudo -u "${user}" /usr/bin/tldr --update
-	sudo -u "${user}" vim +PluginInstall +qall
-	printf -- 'Vim plugins updated.\n'
-    /home/jam/bin/getInstalled.bash
-	sudo -u "${user}" /home/jam/bin/updatePip.bash
-	printf -- 'Npm updated.\n'
-	paccache -d
-	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
-	case "$response" in
-		y|Y)
-			paccache -rv  ;;
-		*)
-			printf -- 'Pacman cache cleared.\n'
-		esac
-    printf -- '%s\n' "${currentDate}" >> /home/jam/bin/.lastDate
-    printf -- 'Next full update will run on or after %d.\n' "${nextDate}"
-	printPacdiff
-# TODO Add updater for cargo and checks for if anything here fails
-#      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
-#### CARGO UPDATER PSEUDOCODE
-# if "~/.cargo" exists; then
-#     for dir that is not in {'bin', 'git', 'registry'}:
-#         (cd "${DIR}" && cargo update)
-# else
-#     :
-#
+if [[ ! -s ~/bin/.lastDate ]]; then
+	printf 'Update other programs? '; read -r response
+	response=$( echo "${response}" | tr '[:upper:]' '[:lower:]' )
+	if [[ "${response}" == y ]] || [[ "${response}" = yes ]]; then
+		extraUpdates
+	else
+		printf -- '%s\n' "Skipping extra updates."
+	fi
+else
+	lastDate=$( tail -n1 ~/bin/.lastDate )
+	currentDate=$( date "+%y%m%d" )
+	# TODO nextdate can go over 31
+	nextDate=$(( lastDate + 7 ))
+	if [[ "${currentDate}" -ge "${nextDate}" ]]; then
+		extraUpdates "${currentDate}" "${nextDate}"
+	fi
 fi
 
 exit 0

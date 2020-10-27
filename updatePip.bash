@@ -15,5 +15,5 @@ fi
 pip list -o | grep -v '\^-e' | tee ~/.local/lib/python3.8/installed/"$( date +\"%y%m%d\" )" \
 | grep -Ev 'sdist|--|Latest\s' | cut -d' ' -f1 | xargs -r -n1 pip install --user -U
 
-printf -- '%s\n' "Pip packages upgraded."
+printf -- '\n%s\n' "Pip packages upgraded."
 exit 0
