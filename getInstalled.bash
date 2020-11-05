@@ -40,7 +40,7 @@ case "$1" in
 		getInstalled
 		;;
 	-h|--help)
-		printf 'Usage:\ngetInstalled.bash [-g|--git]\n-g\tProvides git integration\n'
+		printf 'Usage:\ngetInstalled.bash [-g|--git]\n-g\tProvides git integration\n\n'
 		exit 0
 		;;
 	*)
