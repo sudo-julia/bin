@@ -1,8 +1,7 @@
 # My scripts
 ------------
 
-- `brightLimits.zsh` sets the brightness to a maximum or minimum level defined by the user (dual monitor)
-  - with all of these, they might not work on your system as they're written for my specific hardware
+- `changeBright.zsh` will adjust the brightness of your laptop and one external monitor, depending on the argument given
 
 - `displayCheck.bash` launches compositor and statusbar, will use an external monitor if one is plugged in
 

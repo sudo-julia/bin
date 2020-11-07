@@ -20,7 +20,7 @@ path_to_lastdate=/home/"${user}"/bin/.lastDate
 #     :
 
 extraUpdates () {
-    sudo -u "${user}" zsh /home/jam/bin/runZinit.zsh
+    sudo -u "${user}" zsh /home/"${user}"/bin/runZinit.zsh
 	# TODO redirect out to say "tldr cache updated"
     sudo -u "${user}" /usr/bin/tldr --update > /dev/null && \
 	printf -- 'Tldr cache updated.\n'
@@ -37,7 +37,7 @@ extraUpdates () {
 		*)
 			printf -- 'Skipping pacman cache.\n'
 		esac
-    /home/jam/bin/getInstalled.bash
+    /home/"${user}"/bin/getInstalled.bash
 	if [[ "${1}" ]]; then
 		echo "${1}" >> /home/"${user}"/bin/.lastDate
 		printf -- '\nNext full update will run on or after %d.\n' "${2}"
