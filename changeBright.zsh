@@ -8,7 +8,7 @@
 # change this to match your external monitor's name.
 # if you don't know it, run `xrandr | grep 'connected | grep -v 'dis'`
 extMonitor=HDMI-0
-extStatus=$( xrandr | awk "/$extMonitor/{print $2}" )
+extStatus=$( xrandr | grep "$extMonitor" | cut -d' ' -f2 ) # TODO switch to awk
 if [[ "$extStatus" = connected ]]; then
 	extBright=$( xrandr --verbose \
 		| grep -A5 "$extMonitor" \
@@ -20,9 +20,8 @@ backlight=$( xbacklight )
 
 lower () {
 	if [[ $extConnected ]]; then
-		extLower
 		if (( extBright > 0.2 )); then
-			xrandr --output "$extMonitor" --brightness "$(( extBright - 0.5 ))"
+			xrandr --output "$extMonitor" --brightness "$(( extBright - 0.05 ))"
 		fi
 	fi
 	if (( backlight > 20 )); then
@@ -34,8 +33,8 @@ lower () {
 
 raise () {
 	if [[ $extConnected ]]; then
-		if (( extBright =< 1.0 )); then
-			xrandr --output "$extMonitor" --brightness "$(( extBright + 0.5 ))"
+		if (( extBright <= 1.0 )); then
+			xrandr --output "$extMonitor" --brightness "$(( extBright + 0.05 ))"
 		fi
 	fi
 	if (( backlight <= 100 )); then
