@@ -6,6 +6,8 @@ import stat
 from time import sleep
 from iterfzf import iterfzf
 
+
+__version__ = "v0.1.0"
 # TODO monkeypatch iterfzf to change height of display
 
 
@@ -16,7 +18,6 @@ def copy_permissions(file: str, location: str):
     try:
         shutil.copytree(file, location)
     except NotADirectoryError:
-        print(4)
         shutil.copy2(file, location)
     # copy owner and group
     st = os.stat(file)
@@ -40,7 +41,6 @@ def iterate_files(path: str, hidden=False, recurse=None):
 def parse_args():
     """parse arguments fed to script and set options"""
     # TODO argument to copy all files of an extension
-    # TODO arg for exact matches vs fuzzy
     # TODO arg for color depending on filetype
     parser = argparse.ArgumentParser()
 
@@ -63,6 +63,7 @@ def parse_args():
     parser.add_argument(
         "-v", "--verbose", help="print file file created", action="store_true"
     )
+    parser.add_argument("--version", help="print version number", action="store_true")
 
     args = parser.parse_args()
     if args.all:
@@ -90,6 +91,8 @@ def parse_args():
         verbose = True
     else:
         verbose = False
+    if args.version:
+        print(f"mkbak.py {__version__}")
     return exact, hidden, ignore, path, preview, recurse, verbose
 
 
