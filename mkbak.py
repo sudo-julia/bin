@@ -93,6 +93,8 @@ def parse_args():
         verbose = False
     if args.version:
         print(f"mkbak.py {__version__}")
+        exit(0)
+
     return exact, hidden, ignore, path, preview, recurse, verbose
 
 

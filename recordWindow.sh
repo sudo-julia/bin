@@ -7,4 +7,4 @@ if ! hash giph 2> /dev/null; then
 	printf -- 'giph not installed. Exiting.\n'
 fi
 
-giph -w "${WINDOWID}" --format gif "${video_dir}/$( date '+%Y-%m-%dT%H:%M:%S' )"
+giph -w "${WINDOWID}" --format gif "${video_dir}/$( date '+%Y-%m-%dT%H:%M:%S' )" &

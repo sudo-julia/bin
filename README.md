@@ -10,9 +10,11 @@
 - `getInstalled.bash` grabs all installed programs and backs them up to a folder
   - also separates AUR/local packages into a separate file
 
-- `mkbak.bash` create backups of files
-  - requires [fzf](https://github.com/junegunn/fzf)
-  - the fanciest wrapper to `cp` you'll ever see
+- `mkbak.py` create backups of files
+  - requires [iterfzf](https://github.com/dahlia/iterfzf)
+
+- `recordWindow.sh` records the current window in the background
+  - requires [giph](https://github.com/phisch/giph)
 
 - `u` is my updater script
   - requires [informant](https://github.com/bradford-smith94/informant), [pacman-contrib](https://git.archlinux.org/pacman-contrib.git/about) and  [yay](https://github.com/Jguer/yay)
