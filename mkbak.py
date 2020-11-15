@@ -11,7 +11,7 @@ __version__ = "v0.1.0"
 # TODO monkeypatch iterfzf to change height of display
 
 
-def copy_permissions(file: str, location: str):
+def copy_all(file: str, location: str):
     """copy a file owner and group intact"""
     # function from https://stackoverflow.com/a/43761127
     # copy content, stat-info, mode and timestamps
@@ -106,11 +106,10 @@ def main():
         preview=preview,
         multi=True,
     )
-    # TODO implement recursive directory copying
     try:
         for f in files:
             location = f"{f}.bak"
-            copy_permissions(f, location)
+            copy_all(f, location)
             if verbose:
                 print(f"{f} -> {location}")
         exit(0)

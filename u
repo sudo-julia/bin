@@ -19,9 +19,9 @@ path_to_lastdate=/home/"${user}"/bin/.lastDate
 # else
 #     :
 
+
 extraUpdates () {
     sudo -u "${user}" zsh /home/"${user}"/bin/runZinit.zsh
-	# TODO redirect out to say "tldr cache updated"
     sudo -u "${user}" /usr/bin/tldr --update > /dev/null && \
 	printf -- 'Tldr cache updated.\n'
 	sudo -u "${user}" vim +PluginInstall +qall
@@ -45,6 +45,26 @@ extraUpdates () {
 	printPacdiff
 }
 
+
+monthCheck () {
+	currentMonth=$( echo "${currentDate}" | cut -c4-5 )
+	newYear=$( echo "${currentDate}" | cut -c1-2 )
+	newMonth="$(( currentMonth + 1 ))"
+	if (( newMonth > 12 )); then
+		newMonth=1
+		newYear=$(( newYear + 1 ))
+	fi
+	days_thirtyone=(01 03 05 07 08 10 12)
+	if [[ "${currentMonth}" =~ ${days_thirtyone[*]} ]]; then
+		difference="$(( currentDateLast - 31 ))"
+	else
+		difference="$(( currentDateLast - 30 ))"
+	fi
+	newDate="${newYear}${newMonth}${difference}"
+	echo "${newDate}"
+}
+
+
 printPacdiff () {
 	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
@@ -55,6 +75,7 @@ printPacdiff () {
 	fi
 	return
 }
+
 
 PACDIFF_RUN=0
 
@@ -110,11 +131,14 @@ elif [[ "${path_to_lastdate}" ]] && [[ ! -s "${path_to_lastdate}" ]]; then
 	echo '000000' > "${path_to_lastdate}"
 fi
 
-if [[ "${path_to_lastdate}" ]] && [[ -s "${path_to_lastdate}" ]]; then
-	#lastDate=$( tail -n1 "${path_to_lastdate}" )
+if [[ -s "${path_to_lastdate}" ]]; then
 	currentDate=$( date "+%y%m%d" )
-	# TODO nextdate can go over 31
-	nextDate=$(( currentDate + 7 ))
+	currentDateLast=$( echo "${currentDate}" | cut -c5- )
+	if (( currentDateLast > 31 )); then
+		nextDate=$( monthCheck )
+	else
+		nextDate=$(( currentDate + 7 ))
+	fi
 	if [[ "${currentDate}" -ge "${nextDate}" ]]; then
 		extraUpdates "${currentDate}" "${nextDate}"
 	fi
