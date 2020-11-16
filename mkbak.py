@@ -25,8 +25,7 @@ def copy_all(file: str, location: str):
 
 
 def iterate_files(path: str, hidden=False, recurse=None):
-    """recursively iterate through DirEntries to feed to fzf wrapper"""
-    # TODO shorten this/break it down into more functions
+    """iterate through files as DirEntries to feed to fzf wrapper"""
     with os.scandir(path) as it:
         if hidden:
             for entry in it:
@@ -82,6 +81,7 @@ def parse_args():
     """parse arguments fed to script and set options"""
     # TODO argument to copy all files of an extension
     # TODO arg for color depending on filetype
+    # TODO arg addition to recursive that allows for depth to recurse
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -155,6 +155,7 @@ def recursive(path: str, hidden=None):
                     pass
         else:
             for entry in it:
+                # if the entry is a dir, follow it with this function
                 try:
                     if entry.is_dir(follow_symlinks=False):
                         yield from recursive(entry.path, hidden=True)

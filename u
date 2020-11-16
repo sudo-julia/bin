@@ -4,12 +4,8 @@ set -eo pipefail
 # update system on arch, calls aur sep w extra util for aux programs (date-based) at end
 # requires informant, pacman-contrib and yay
 
-# change the user you're updating for here
-user=jam
-# if you want extra updates to run automatically, place the file to read them from here
-# if this is unset, the program will ask if you'd like to update extras every time it's run
-path_to_lastdate=/home/"${user}"/bin/.lastDate
 
+# TODO check for installed programs
 # TODO Add updater for cargo and check for failures
 #      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
 #### CARGO UPDATER PSEUDOCODE
@@ -21,6 +17,10 @@ path_to_lastdate=/home/"${user}"/bin/.lastDate
 
 
 extraUpdates () {
+	# update extra programs and non-arch package managers
+	if [[ ! "${user}" ]]; then
+		return 1
+	fi
     sudo -u "${user}" zsh /home/"${user}"/bin/runZinit.zsh
     sudo -u "${user}" /usr/bin/tldr --update > /dev/null && \
 	printf -- 'Tldr cache updated.\n'
@@ -42,11 +42,11 @@ extraUpdates () {
 		echo "${1}" >> /home/"${user}"/bin/.lastDate
 		printf -- '\nNext full update will run on or after %d.\n' "${2}"
 	fi
-	printPacdiff
 }
 
 
 monthCheck () {
+	# check the month and fix any incorrectly formatted dates
 	currentMonth=$( echo "${currentDate}" | cut -c4-5 )
 	newYear=$( echo "${currentDate}" | cut -c1-2 )
 	newMonth="$(( currentMonth + 1 ))"
@@ -66,12 +66,10 @@ monthCheck () {
 
 
 printPacdiff () {
+	# print out any pacnew files
 	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
 		PACDIFF_RUN=1
-		return
-	else
-		:
 	fi
 	return
 }
@@ -79,12 +77,23 @@ printPacdiff () {
 
 PACDIFF_RUN=0
 
+if getent passwd "jam" > /dev/null; then
+	user=jam
+	pathToLastDate=/home/"${user}"/bin/.lastDate
+else
+	# if this is unset, the program will ask if you'd like to update extras every time it's run
+	# change the user you're updating for here
+	user=
+	# if you want extra updates to run automatically, place the file to read them from here
+	pathToLastDate=
+fi
 
 if [[ "$( id -u )" -ne 0 ]]; then
 	printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
 	exit 1
 fi
 
+# TODO overhaul this section as informant cancels update
 informant check; INF_UPDATES=$?
 if [[ ${INF_UPDATES} -ne 0 ]]; then
 	informant list
@@ -99,39 +108,43 @@ else
     printf -- '%s\n' "No updates to Arch News."
 fi
 
-printf -- ':: Proceed with main update? [Y/n] '; read -r response
+printf -- ':: Begin main update? [Y/n] '; read -r response
 case "$response" in
     y|Y)
-	pacman -Syu
-	pacdiff -o > /tmp/pacnew.out
-	printf -- ':: Also update AUR packages? [Y/n] '; read -r response
-	case "$response" in
-	    y|Y)
-		sudo -u "${user}" paru -Sua  ;;
-	    *)
-		printf -- 'Skipping AUR packages.\n'
-	esac ;;
+		pacman -Syu
+		pacdiff -o > /tmp/pacnew.out
+		if [[ ! "${user}" ]]; then
+			exit 0
+		else
+			printf -- ':: Also update AUR packages? [Y/n] '; read -r response
+			case "$response" in
+				y|Y)
+					sudo -u "${user}" yay -Syua  ;;
+				*)
+					printf -- 'Skipping AUR packages.\n'
+			esac
+		fi  ;;
     *)
-	printf -- 'Cancelling update.\n'
-	exit 0
+		printf -- 'Cancelling update.\n'
+		exit 0
 esac
-printPacdiff
 
-if [[ ! "${path_to_lastdate}" ]]; then
+if [[ ! "${pathToLastDate}" ]]; then
+	# if the user doesn't want to make lastDate file
 	printf 'Update other programs? '; read -r response
-	response=$( echo "${response}" | tr '[:upper:]' '[:lower:]' )
-	if [[ "${response}" == y ]] || [[ "${response}" = yes ]]; then
-		extraUpdates
-	else
-		printf -- '%s\n' "Skipping extra updates."
-	fi
-	exit 0
-elif [[ "${path_to_lastdate}" ]] && [[ ! -s "${path_to_lastdate}" ]]; then
-	# if variable is set but file doesn't exist, create it
-	echo '000000' > "${path_to_lastdate}"
-fi
+	case "${response}" in
+		y|Y)
+			extraUpdates ;;
+		*)
+			printf -- '%s\n' "Skipping extra updates."
+	esac
 
-if [[ -s "${path_to_lastdate}" ]]; then
+elif [[ "${pathToLastDate}" ]] && [[ ! -s "${pathToLastDate}" ]]; then
+	# if variable is set but file doesn't exist, create it
+	echo '000000' > "${pathToLastDate}"
+
+elif [[ -s "${pathToLastDate}" ]]; then
+	# check date to see if it's been a week since the last update
 	currentDate=$( date "+%y%m%d" )
 	currentDateLast=$( echo "${currentDate}" | cut -c5- )
 	if (( currentDateLast > 31 )); then
@@ -143,5 +156,7 @@ if [[ -s "${path_to_lastdate}" ]]; then
 		extraUpdates "${currentDate}" "${nextDate}"
 	fi
 fi
+
+printPacdiff
 
 exit 0

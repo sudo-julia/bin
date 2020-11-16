@@ -18,6 +18,5 @@
 
 - `u` is my updater script
   - requires [informant](https://github.com/bradford-smith94/informant), [pacman-contrib](https://git.archlinux.org/pacman-contrib.git/about) and  [yay](https://github.com/Jguer/yay)
-  - this one has some probably unnecessary bits, but was the first "big" script I wrote so cut me some slack
 
 - `updatePip.bash` updates any old pip packages
