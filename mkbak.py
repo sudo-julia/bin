@@ -6,7 +6,7 @@ import stat
 from iterfzf import iterfzf
 
 
-__version__ = "v0.3.2"
+__version__ = "v0.3.3"
 # TODO monkeypatch iterfzf to change height of display
 
 
@@ -30,13 +30,19 @@ def iterate_files(path: str, hidden=False, recurse=None):
     with os.scandir(path) as it:
         if hidden:
             for entry in it:
-                yield entry.path
+                try:
+                    yield entry.path
+                except PermissionError:
+                    pass
         else:
             for entry in it:
-                if entry.name.startswith("."):
+                try:
+                    if entry.name.startswith("."):
+                        pass
+                    else:
+                        yield entry.path
+                except PermissionError:
                     pass
-                else:
-                    yield entry.path
 
 
 def main():
@@ -137,19 +143,25 @@ def recursive(path: str, hidden=None):
     with os.scandir(path) as it:
         if not hidden:
             for entry in it:
-                if entry.name.startswith("."):
-                    pass
-                else:
-                    if entry.is_dir():
-                        yield from recursive(entry.path)
+                try:
+                    if entry.name.startswith("."):
+                        pass
                     else:
-                        yield entry.path
+                        if entry.is_dir():
+                            yield from recursive(entry.path)
+                        else:
+                            yield entry.path
+                except PermissionError:
+                    pass
         else:
             for entry in it:
-                if entry.is_dir(follow_symlinks=False):
-                    yield from recursive(entry.path, hidden=True)
-                else:
-                    yield entry.path
+                try:
+                    if entry.is_dir(follow_symlinks=False):
+                        yield from recursive(entry.path, hidden=True)
+                    else:
+                        yield entry.path
+                except PermissionError:
+                    pass
 
 
 if __name__ == "__main__":
