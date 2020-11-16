@@ -7,7 +7,7 @@ from time import sleep
 from iterfzf import iterfzf
 
 
-__version__ = "v0.1.0"
+__version__ = "v0.1.1"
 # TODO monkeypatch iterfzf to change height of display
 
 
@@ -30,11 +30,11 @@ def iterate_files(path: str, hidden=False, recurse=None):
         if not hidden:
             for entry in it:
                 if not entry.name.startswith("."):
-                    yield entry.name
+                    yield entry.path
                     sleep(0.01)
         else:
             for entry in it:
-                yield entry.name
+                yield entry.path
                 sleep(0.01)
 
 
