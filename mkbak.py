@@ -7,12 +7,13 @@ from time import sleep
 from iterfzf import iterfzf
 
 
-__version__ = "v0.1.1"
+__version__ = "v0.3.0"
 # TODO monkeypatch iterfzf to change height of display
 
 
 def copy_all(file: str, location: str):
     """copy a file owner and group intact"""
+    # TODO check if this properly copies permissions of files in dirs
     # function from https://stackoverflow.com/a/43761127
     # copy content, stat-info, mode and timestamps
     try:
@@ -24,18 +25,42 @@ def copy_all(file: str, location: str):
     os.chown(location, st[stat.ST_UID], st[stat.ST_GID])
 
 
-def iterate_files(path: str, hidden=False, recurse=None):
-    """iterate through files to feed to fzf wrapper"""
+def iterate_files(path: str, hidden=False, recursive=None):
+    """recursively iterate through DirEntries to feed to fzf wrapper"""
+    # TODO shorten this/break it down into more functions
     with os.scandir(path) as it:
-        if not hidden:
-            for entry in it:
-                if not entry.name.startswith("."):
+        if hidden:
+            if recursive:
+                for entry in it:
+                    if entry.is_dir(follow_symlinks=False):
+                        yield from iterate_files(
+                            entry.path, hidden=True, recursive=True
+                        )
+                    else:
+                        yield entry.path
+                    sleep(0.0001)
+            else:
+                for entry in it:
                     yield entry.path
-                    sleep(0.01)
+                    sleep(0.0001)
         else:
-            for entry in it:
-                yield entry.path
-                sleep(0.01)
+            if recursive:
+                for entry in it:
+                    if entry.name.startswith("."):
+                        pass
+                    else:
+                        if entry.is_dir():
+                            yield from iterate_files(entry.path, hidden=False)
+                        else:
+                            yield entry.path
+                    sleep(0.0001)
+            else:
+                for entry in it:
+                    if entry.name.startswith("."):
+                        pass
+                    else:
+                        yield entry.path
+                    sleep(0.0001)
 
 
 def parse_args():
@@ -69,7 +94,7 @@ def parse_args():
     if args.all:
         hidden = True
     else:
-        hidden = False
+        hidden = None
     if args.exact:
         exact = True
     else:
@@ -101,7 +126,7 @@ def parse_args():
 def main():
     exact, hidden, ignore, path, preview, recurse, verbose = parse_args()
     files = iterfzf(
-        iterable=iterate_files(path, hidden, recurse),
+        iterable=(iterate_files(path, hidden, recurse)),
         case_sensitive=ignore,
         exact=exact,
         encoding="utf-8",
@@ -114,9 +139,9 @@ def main():
             copy_all(f, location)
             if verbose:
                 print(f"{f} -> {location}")
-        exit(0)
     except TypeError:
-        exit(1)
+        pass
+    exit(0)
 
 
 if __name__ == "__main__":
