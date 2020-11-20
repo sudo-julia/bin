@@ -5,7 +5,8 @@ set -eo pipefail
 # requires informant, pacman-contrib and yay
 
 
-# TODO check for installed programs
+# TODO check for installed programs before extraUpdates
+# TODO offer to remove orphan packages along with cache
 # TODO Add updater for cargo and check for failures
 #      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
 #### CARGO UPDATER PSEUDOCODE
@@ -45,6 +46,60 @@ extraUpdates () {
 }
 
 
+lastDateCheck() {
+	if [[ ! "${pathToLastDate}" ]]; then
+		# if the user doesn't want to make lastDate file
+		printf 'Update other programs? '; read -r response
+		case "${response}" in
+			y|Y)
+				extraUpdates ;;
+			*)
+				printf -- '%s\n' "Skipping extra updates."
+		esac
+	elif [[ "${pathToLastDate}" ]] && [[ ! -s "${pathToLastDate}" ]]; then
+		# if variable is set but file doesn't exist, create it
+		echo '000000' > "${pathToLastDate}"
+	elif [[ -s "${pathToLastDate}" ]]; then
+		# check date to see if it's been a week since the last update
+		lastDate=$( tail -n1 "${pathToLastDate}" )
+		currentDate=$( date "+%y%m%d" )
+		currentDateLast=$( echo "${currentDate}" | cut -c5- )
+		if (( currentDateLast >= 26 )); then
+			nextDate=$( monthCheck )
+		else
+			nextDate=$(( lastDate + 7 ))
+		fi
+		if [[ "${currentDate}" -ge "${nextDate}" ]]; then
+			extraUpdates "${currentDate}" "${nextDate}"
+	fi
+fi
+}
+
+
+mainUpdate() {
+	printf -- ':: Begin main update? [Y/n] '; read -r response
+	case "$response" in
+		y|Y)
+			pacman -Syu
+			pacdiff -o > /tmp/pacnew.out
+			if [[ ! "${user}" ]]; then
+				exit 0
+			else
+				printf -- ':: Also update AUR packages? [Y/n] '; read -r response
+				case "$response" in
+					y|Y)
+						sudo -u "${user}" yay -Syua  ;;
+					*)
+						printf -- 'Skipping AUR packages.\n'
+				esac
+			fi  ;;
+		*)
+			printf -- 'Cancelling update.\n'
+			exit 0
+	esac
+}
+
+
 monthCheck () {
 	# check the month and fix any incorrectly formatted dates
 	currentMonth=$( echo "${currentDate}" | cut -c4-5 )
@@ -75,6 +130,14 @@ printPacdiff () {
 }
 
 
+rootCheck() {
+	if [[ "$( id -u )" -ne 0 ]]; then
+		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
+		exit 1
+	fi
+}
+
+
 PACDIFF_RUN=0
 
 if getent passwd "jam" > /dev/null; then
@@ -88,74 +151,12 @@ else
 	pathToLastDate=
 fi
 
-if [[ "$( id -u )" -ne 0 ]]; then
-	printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
-	exit 1
-fi
+# exit program if not run as root
+rootCheck
 
-# TODO overhaul this section as informant cancels update
-informant check; INF_UPDATES=$?
-if [[ ${INF_UPDATES} -ne 0 ]]; then
-	informant list
-	printf -- 'Read new bulletins? '; read -r response
-	case "$response" in
-	    y|Y)
-		informant read	;;
-	    *)
-		printf -- '%s\n' "Skipping read."
-	esac
-else
-    printf -- '%s\n' "No updates to Arch News."
-fi
+mainUpdate
 
-printf -- ':: Begin main update? [Y/n] '; read -r response
-case "$response" in
-    y|Y)
-		pacman -Syu
-		pacdiff -o > /tmp/pacnew.out
-		if [[ ! "${user}" ]]; then
-			exit 0
-		else
-			printf -- ':: Also update AUR packages? [Y/n] '; read -r response
-			case "$response" in
-				y|Y)
-					sudo -u "${user}" yay -Syua  ;;
-				*)
-					printf -- 'Skipping AUR packages.\n'
-			esac
-		fi  ;;
-    *)
-		printf -- 'Cancelling update.\n'
-		exit 0
-esac
-
-if [[ ! "${pathToLastDate}" ]]; then
-	# if the user doesn't want to make lastDate file
-	printf 'Update other programs? '; read -r response
-	case "${response}" in
-		y|Y)
-			extraUpdates ;;
-		*)
-			printf -- '%s\n' "Skipping extra updates."
-	esac
-
-elif [[ "${pathToLastDate}" ]] && [[ ! -s "${pathToLastDate}" ]]; then
-	# if variable is set but file doesn't exist, create it
-	echo '000000' > "${pathToLastDate}"
-
-elif [[ -s "${pathToLastDate}" ]]; then
-	# check date to see if it's been a week since the last update
-	currentDate=$( date "+%y%m%d" )
-	currentDateLast=$( echo "${currentDate}" | cut -c5- )
-	if (( currentDateLast > 31 )); then
-		nextDate=$( monthCheck )
-	else
-		nextDate=$(( currentDate + 7 ))
-	fi
-	if [[ "${currentDate}" -ge "${nextDate}" ]]; then
-		extraUpdates "${currentDate}" "${nextDate}"
-	fi
-fi
+lastDateCheck
 
 printPacdiff
 
