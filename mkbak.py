@@ -6,13 +6,12 @@ import stat
 from iterfzf import iterfzf
 
 
-__version__ = "v0.3.3-1"
+__version__ = "v0.3.4"
 # TODO monkeypatch iterfzf to change height of display
 
 
 def copy_all(file: str, location: str):
     """copy a file owner and group intact"""
-    # TODO check if this properly copies permissions of files in dirs
     # function from https://stackoverflow.com/a/43761127
     # copy content, stat-info, mode and timestamps
     try:
@@ -24,32 +23,47 @@ def copy_all(file: str, location: str):
     os.chown(location, st[stat.ST_UID], st[stat.ST_GID])
 
 
-def iterate_files(path: str, hidden=False):
+def iterate_files(path: str, filetype: str, hidden=False):
     """iterate through files as DirEntries to feed to fzf wrapper"""
     with os.scandir(path) as it:
-        if hidden:
+        if filetype and hidden:
             for entry in it:
-                try:
-                    yield entry.path
-                except PermissionError:
-                    pass
-        else:
-            for entry in it:
-                try:
-                    if entry.name.startswith("."):
-                        pass
-                    else:
+                if entry.name.endswith(filetype):
+                    try:
                         yield entry.path
-                except PermissionError:
-                    pass
+                    except PermissionError:
+                        pass
+        elif filetype and not hidden:
+            for entry in it:
+                if entry.name.endswith(filetype) and not entry.name.startswith("."):
+                    try:
+                        yield entry.path
+                    except PermissionError:
+                        pass
+        elif not filetype:
+            if hidden:
+                for entry in it:
+                    try:
+                        yield entry.path
+                    except PermissionError:
+                        pass
+            else:
+                for entry in it:
+                    try:
+                        if entry.name.startswith("."):
+                            pass
+                        else:
+                            yield entry.path
+                    except PermissionError:
+                        pass
 
 
 def main():
-    exact, hidden, ignore, path, preview, recurse, verbose = parse_args()
+    filetype, exact, hidden, ignore, path, preview, recurse, verbose = parse_args()
 
-    if recurse:
+    if not recurse:
         files = iterfzf(
-            iterable=(recursive(path, hidden)),
+            iterable=(iterate_files(path, filetype, hidden)),
             case_sensitive=ignore,
             exact=exact,
             encoding="utf-8",
@@ -58,7 +72,7 @@ def main():
         )
     else:
         files = iterfzf(
-            iterable=(iterate_files(path, hidden)),
+            iterable=(recursive(path, hidden)),
             case_sensitive=ignore,
             exact=exact,
             encoding="utf-8",
@@ -80,7 +94,7 @@ def main():
 
 def parse_args():
     """parse arguments fed to script and set options"""
-    # TODO argument to copy all files of an extension
+    # TODO make extension copying recursive
     # TODO arg addition to recursive that allows for depth to recurse
     parser = argparse.ArgumentParser()
     main_args = parser.add_argument_group()
@@ -93,13 +107,19 @@ def parse_args():
         "-e", "--exact", help="exact matching", action="store_true"
     )
     matching_group.add_argument(
+        "-f",
+        "--filetype",
+        help="only find files of a provided extension. recursion not supported",
+        type=str,
+    )
+    matching_group.add_argument(
         "-i", "--ignore_case", help="ignore case distinction", action="store_true"
     )
     main_args.add_argument(
-        "-p", "--path", help="directory to run in (default './')", default="."
+        "-p", "--path", help="directory to run in (default './')", default=".", type=str
     )
     main_args.add_argument(
-        "--preview", help="starts external process with current line as arg"
+        "--preview", help="starts external process with current line as arg", type=str
     )
     main_args.add_argument(
         "-r", "--recursive", help="recurse through current dir", action="store_true"
@@ -110,6 +130,9 @@ def parse_args():
     parser.add_argument("--version", help="print version number", action="store_true")
 
     args = parser.parse_args()
+    if args.version:
+        print(f"mkbak.py {__version__}")
+        exit(0)
     if args.all:
         hidden = True
     else:
@@ -118,6 +141,10 @@ def parse_args():
         exact = True
     else:
         exact = False
+    if args.filetype:
+        filetype = str(args.filetype)
+    else:
+        filetype = None
     if args.ignore_case:
         ignore = False
     else:
@@ -135,11 +162,8 @@ def parse_args():
         verbose = True
     else:
         verbose = False
-    if args.version:
-        print(f"mkbak.py {__version__}")
-        exit(0)
 
-    return exact, hidden, ignore, path, preview, recurse, verbose
+    return filetype, exact, hidden, ignore, path, preview, recurse, verbose
 
 
 def recursive(path: str, hidden=None):
