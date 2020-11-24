@@ -6,7 +6,7 @@ import stat
 from iterfzf import iterfzf
 
 
-__version__ = "v0.3.3"
+__version__ = "v0.3.3-1"
 # TODO monkeypatch iterfzf to change height of display
 
 
@@ -24,7 +24,7 @@ def copy_all(file: str, location: str):
     os.chown(location, st[stat.ST_UID], st[stat.ST_GID])
 
 
-def iterate_files(path: str, hidden=False, recurse=None):
+def iterate_files(path: str, hidden=False):
     """iterate through files as DirEntries to feed to fzf wrapper"""
     with os.scandir(path) as it:
         if hidden:
@@ -58,7 +58,7 @@ def main():
         )
     else:
         files = iterfzf(
-            iterable=(iterate_files(path, hidden, recurse)),
+            iterable=(iterate_files(path, hidden)),
             case_sensitive=ignore,
             exact=exact,
             encoding="utf-8",
@@ -74,33 +74,37 @@ def main():
                 print(f"{f} -> {location}")
     except TypeError:
         pass
+
     exit(0)
 
 
 def parse_args():
     """parse arguments fed to script and set options"""
     # TODO argument to copy all files of an extension
-    # TODO arg for color depending on filetype
     # TODO arg addition to recursive that allows for depth to recurse
     parser = argparse.ArgumentParser()
+    main_args = parser.add_argument_group()
+    matching_group = parser.add_mutually_exclusive_group()
 
-    parser.add_argument(
+    main_args.add_argument(
         "-a", "--all", help="show hidden and 'dot' files", action="store_true"
     )
-    parser.add_argument("-e", "--exact", help="exact matching", action="store_true")
-    parser.add_argument(
+    matching_group.add_argument(
+        "-e", "--exact", help="exact matching", action="store_true"
+    )
+    matching_group.add_argument(
         "-i", "--ignore_case", help="ignore case distinction", action="store_true"
     )
-    parser.add_argument(
+    main_args.add_argument(
         "-p", "--path", help="directory to run in (default './')", default="."
     )
-    parser.add_argument(
+    main_args.add_argument(
         "--preview", help="starts external process with current line as arg"
     )
-    parser.add_argument(
+    main_args.add_argument(
         "-r", "--recursive", help="recurse through current dir", action="store_true"
     )
-    parser.add_argument(
+    main_args.add_argument(
         "-v", "--verbose", help="print file file created", action="store_true"
     )
     parser.add_argument("--version", help="print version number", action="store_true")
