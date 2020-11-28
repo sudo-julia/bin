@@ -39,7 +39,7 @@ extraUpdates () {
 			printf -- 'Skipping pacman cache.\n'
 		esac
     /home/"${user}"/bin/getInstalled.bash
-	if [[ "${1}" ]]; then
+	if [[ "$#" ]]; then
 		echo "${1}" >> /home/"${user}"/bin/.lastDate
 		printf -- '\nNext full update will run on or after %d.\n' "${2}"
 	fi
@@ -47,12 +47,13 @@ extraUpdates () {
 
 
 lastDateCheck() {
+	# check if it's time to run extraUpdates
 	if [[ ! "${pathToLastDate}" ]]; then
 		# if the user doesn't want to make lastDate file
 		printf 'Update other programs? '; read -r response
 		case "${response}" in
 			y|Y)
-				extraUpdates ;;
+				extraUpdates  ;;
 			*)
 				printf -- '%s\n' "Skipping extra updates."
 		esac
@@ -77,6 +78,8 @@ fi
 
 
 mainUpdate() {
+	# run the main update
+	informant check
 	printf -- ':: Begin main update? [Y/n] '; read -r response
 	case "$response" in
 		y|Y)
@@ -102,6 +105,7 @@ mainUpdate() {
 
 monthCheck () {
 	# check the month and fix any incorrectly formatted dates
+	# TODO unsurprisingly this doesn't work, returned 211 on 201128
 	currentMonth=$( echo "${currentDate}" | cut -c4-5 )
 	newYear=$( echo "${currentDate}" | cut -c1-2 )
 	newMonth="$(( currentMonth + 1 ))"
@@ -126,7 +130,6 @@ printPacdiff () {
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
 		PACDIFF_RUN=1
 	fi
-	return
 }
 
 
