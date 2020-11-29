@@ -71,8 +71,8 @@ lastDateCheck() {
 		fi
 		if [[ "${currentDate}" -ge "${nextDate}" ]]; then
 			extraUpdates "${currentDate}" "${nextDate}"
+		fi
 	fi
-fi
 }
 
 
@@ -102,7 +102,7 @@ mainUpdate() {
 
 monthCheck () {
 	# check the month and fix any incorrectly formatted dates
-	currentMonth=$( echo "${currentDate}" | cut -c4-5 )
+	currentMonth=$( echo "${currentDate}" | cut -c3-4 )
 	newYear=$( echo "${currentDate}" | cut -c1-2 )
 	newMonth="$(( currentMonth + 1 ))"
 	if (( newMonth > 12 )); then
@@ -111,9 +111,12 @@ monthCheck () {
 	fi
 	days_thirtyone=(01 03 05 07 08 10 12)
 	if [[ "${currentMonth}" =~ ${days_thirtyone[*]} ]]; then
-		difference="$(( currentDateLast - 31 ))"
+		difference="$(( 7 - (31 - currentDateLast) ))"
 	else
-		difference="$(( currentDateLast - 30 ))"
+		difference="$(( 7 - (30 - currentDateLast) ))"
+	fi
+	if [[ "${#difference}" -eq 1 ]]; then
+		difference="0${difference}"
 	fi
 	newDate="${newYear}${newMonth}${difference}"
 	echo "${newDate}"
