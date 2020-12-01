@@ -20,7 +20,7 @@ set -eo pipefail
 extraUpdates () {
 	# update extra programs and non-arch package managers
 	if [[ ! "${user}" ]]; then
-		return 1
+		return
 	fi
     sudo -u "${user}" zsh /home/"${user}"/bin/runZinit.zsh
     sudo -u "${user}" /usr/bin/tldr --update > /dev/null && \
@@ -28,7 +28,6 @@ extraUpdates () {
 	sudo -u "${user}" vim +PluginInstall +qall
 	printf -- 'Vim plugins updated.\n'
 	sudo -u "${user}" /home/"${user}"/bin/updatePip.bash
-	printf -- 'Npm updated.\n'
 	paccache -d
 	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
 	case "$response" in
@@ -77,29 +76,11 @@ lastDateCheck() {
 }
 
 
-mainUpdate() {
-	# run the main update
-	informant check
-	printf -- ':: Begin main update? [Y/n] '; read -r response
-	case "$response" in
-		y|Y)
-			pacman -Syu
-			pacdiff -o > /tmp/pacnew.out
-			if [[ ! "${user}" ]]; then
-				exit 0
-			else
-				printf -- ':: Also update AUR packages? [Y/n] '; read -r response
-				case "$response" in
-					y|Y)
-						sudo -u "${user}" yay -Syua  ;;
-					*)
-						printf -- 'Skipping AUR packages.\n'
-				esac
-			fi  ;;
-		*)
-			printf -- 'Cancelling update.\n'
-			exit 0
-	esac
+main () {
+	rootCheck
+	pacUpdate
+	lastDateCheck
+	printPacdiff
 }
 
 
@@ -126,6 +107,32 @@ monthCheck () {
 }
 
 
+pacUpdate() {
+	# run the main update
+	informant check
+	printf -- ':: Begin main update? [Y/n] '; read -r response
+	case "$response" in
+		y|Y)
+			pacman -Syu
+			pacdiff -o > /tmp/pacnew.out
+			if [[ ! "${user}" ]]; then
+				exit 0
+			else
+				printf -- ':: Also update AUR packages? [Y/n] '; read -r response
+				case "$response" in
+					y|Y)
+						sudo -u "${user}" yay -Syua  ;;
+					*)
+						printf -- 'Skipping AUR packages.\n'
+				esac
+			fi  ;;
+		*)
+			printf -- 'Cancelling update.\n'
+			exit 0
+	esac
+}
+
+
 printPacdiff () {
 	# print out any pacnew files
 	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
@@ -136,6 +143,7 @@ printPacdiff () {
 
 
 rootCheck() {
+	# exit program if not run as root
 	if [[ "$( id -u )" -ne 0 ]]; then
 		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
 		exit 1
@@ -156,13 +164,6 @@ else
 	pathToLastDate=
 fi
 
-# exit program if not run as root
-rootCheck
-
-mainUpdate
-
-lastDateCheck
-
-printPacdiff
+main
 
 exit 0

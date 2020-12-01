@@ -6,7 +6,7 @@
 # change this to match your external monitor's name.
 # if you don't know it, run `xrandr | grep 'connected | grep -v 'dis'`
 extMonitor=HDMI-0
-extStatus=$( xrandr | grep "$extMonitor" | cut -d' ' -f2 ) # TODO switch to awk
+extStatus=$( xrandr | awk "/$extMonitor/{print $2}" )
 if [[ "$extStatus" = connected ]]; then
 	extBright=$( xrandr --verbose \
 		| grep -A5 "$extMonitor" \
