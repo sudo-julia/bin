@@ -12,7 +12,7 @@
 
 - `mkbak.py` create backups of files
   - requires [iterfzf](https://github.com/dahlia/iterfzf)
-  - only runs with python3.9 or higher
+  - only runs with python3.6 or higher
 
 - `recordWindow.sh` records the current window in the background
   - requires [giph](https://github.com/phisch/giph)
