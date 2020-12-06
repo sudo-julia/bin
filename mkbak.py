@@ -22,7 +22,7 @@ def copy_all(file: str, location: str):
     os.chown(location, st[stat.ST_UID], st[stat.ST_GID])
 
 
-def iterate_files(path: str, filetype: str, hidden=False):
+def iterate_files(path: str, filetype: str, hidden=False) -> list:
     """iterate through files as DirEntries to feed to fzf wrapper"""
     with os.scandir(path) as it:
         if filetype:
@@ -154,7 +154,7 @@ def parse_args():
     return filetype, exact, hidden, ignore, path, preview, recurse, verbose
 
 
-def recursive(path: str, hidden=None):
+def recursive(path: str, hidden=None) -> list:
     """recursively yield DirEntries"""
     with os.scandir(path) as it:
         for entry in it:
