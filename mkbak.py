@@ -7,7 +7,6 @@ from iterfzf import iterfzf
 
 
 __version__ = "v0.3.4"
-# TODO monkeypatch iterfzf to change height of display
 
 
 def copy_all(file: str, location: str):
@@ -23,37 +22,26 @@ def copy_all(file: str, location: str):
     os.chown(location, st[stat.ST_UID], st[stat.ST_GID])
 
 
-def iterate_files(path: str, filetype: str, hidden=False):
+def iterate_files(path: str, filetype: str, hidden=False) -> list[str]:
     """iterate through files as DirEntries to feed to fzf wrapper"""
     with os.scandir(path) as it:
-        if filetype and hidden:
+        if filetype:
             for entry in it:
-                if entry.name.endswith(filetype):
-                    try:
-                        yield entry.path
-                    except PermissionError:
-                        pass
-        elif filetype and not hidden:
-            for entry in it:
-                if entry.name.endswith(filetype) and not entry.name.startswith("."):
-                    try:
-                        yield entry.path
-                    except PermissionError:
-                        pass
-        elif not filetype:
-            if hidden:
-                for entry in it:
-                    try:
-                        yield entry.path
-                    except PermissionError:
-                        pass
-            else:
-                for entry in it:
-                    try:
-                        if entry.name.startswith("."):
-                            pass
-                        else:
+                if not hidden and entry.name.startswith("."):
+                    pass
+                else:
+                    if entry.name.endswith(filetype):
+                        try:
                             yield entry.path
+                        except PermissionError:
+                            pass
+        elif not filetype:
+            for entry in it:
+                if not hidden and entry.name.startswith("."):
+                    pass
+                else:
+                    try:
+                        yield entry.path
                     except PermissionError:
                         pass
 
@@ -166,27 +154,16 @@ def parse_args():
     return filetype, exact, hidden, ignore, path, preview, recurse, verbose
 
 
-def recursive(path: str, hidden=None):
+def recursive(path: str, hidden=None) -> list[str]:
     """recursively yield DirEntries"""
     with os.scandir(path) as it:
-        if not hidden:
-            for entry in it:
-                try:
-                    if entry.name.startswith("."):
-                        pass
-                    else:
-                        if entry.is_dir():
-                            yield from recursive(entry.path)
-                        else:
-                            yield entry.path
-                except PermissionError:
-                    pass
-        else:
-            for entry in it:
-                # if the entry is a dir, follow it with this function
+        for entry in it:
+            if not hidden and entry.name.startswith("."):
+                pass
+            else:
                 try:
                     if entry.is_dir(follow_symlinks=False):
-                        yield from recursive(entry.path, hidden=True)
+                        yield from recursive(entry.path, hidden)
                     else:
                         yield entry.path
                 except PermissionError:
