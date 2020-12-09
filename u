@@ -19,6 +19,7 @@ set -eo pipefail
 
 extraUpdates () {
 	# update extra programs and non-arch package managers
+	# if you don't want to use any of these, simply delete or comment-out the line
 	if [[ ! "${user}" ]]; then
 		return
 	fi
@@ -33,9 +34,9 @@ extraUpdates () {
 	case "$response" in
 		y|Y)
 			paccache -rv
-			printf -- 'Pacman cache cleared.\n'  ;;
+			printf -- '%s\n' "Pacman cache cleared."  ;;
 		*)
-			printf -- 'Skipping pacman cache.\n'
+			printf -- '%s\n' "Skipping pacman cache."
 		esac
     /home/"${user}"/bin/getInstalled.bash
 	if [[ "$#" ]]; then
@@ -113,7 +114,7 @@ pacUpdate() {
 	printf -- ':: Begin main update? [Y/n] '; read -r response
 	case "$response" in
 		y|Y)
-			pacman -Syu
+			pacman -Syu --noconfirm
 			pacdiff -o > /tmp/pacnew.out
 			if [[ ! "${user}" ]]; then
 				exit 0
@@ -123,11 +124,11 @@ pacUpdate() {
 					y|Y)
 						sudo -u "${user}" yay -Syua  ;;
 					*)
-						printf -- 'Skipping AUR packages.\n'
+						printf -- '%s\n' "Skipping AUR packages"
 				esac
 			fi  ;;
 		*)
-			printf -- 'Cancelling update.\n'
+			printf -- '%s\n' "Cancelling update."
 			exit 0
 	esac
 }
