@@ -46,7 +46,7 @@ extraUpdates () {
 }
 
 
-lastDateCheck() {
+checkLastDate() {
 	# check if it's time to run extraUpdates
 	if [[ ! "${pathToLastDate}" ]]; then
 		# if the user doesn't want to make lastDate file
@@ -66,7 +66,7 @@ lastDateCheck() {
 		currentDate=$( date "+%y%m%d" )
 		currentDateLast=$( echo "${currentDate}" | cut -c5- )
 		if (( currentDateLast >= 26 )); then
-			nextDate=$( monthCheck )
+			nextDate=$( checkMonth )
 		else
 			nextDate=$(( lastDate + 7 ))
 		fi
@@ -77,15 +77,7 @@ lastDateCheck() {
 }
 
 
-main () {
-	rootCheck
-	pacUpdate
-	lastDateCheck
-	printPacdiff
-}
-
-
-monthCheck () {
+checkMonth () {
 	# check the month and fix any incorrectly formatted dates
 	currentMonth=$( echo "${currentDate}" | cut -c3-4 )
 	newYear=$( echo "${currentDate}" | cut -c1-2 )
@@ -105,6 +97,23 @@ monthCheck () {
 	fi
 	newDate="${newYear}${newMonth}${difference}"
 	echo "${newDate}"
+}
+
+
+checkRoot() {
+	# exit program if not run as root
+	if [[ "$( id -u )" -ne 0 ]]; then
+		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
+		exit 1
+	fi
+}
+
+
+main () {
+	checkRoot
+	pacUpdate
+	checkLastDate
+	printPacdiff
 }
 
 
@@ -139,15 +148,6 @@ printPacdiff () {
 	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
 		PACDIFF_RUN=1
-	fi
-}
-
-
-rootCheck() {
-	# exit program if not run as root
-	if [[ "$( id -u )" -ne 0 ]]; then
-		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
-		exit 1
 	fi
 }
 

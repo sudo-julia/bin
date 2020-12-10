@@ -3,6 +3,7 @@ import argparse
 import os
 import shutil
 import stat
+from typing import Generator
 from iterfzf import iterfzf
 
 
@@ -22,7 +23,7 @@ def copy_all(file: str, location: str):
     os.chown(location, st[stat.ST_UID], st[stat.ST_GID])
 
 
-def iterate_files(path: str, filetype: str, hidden=False) -> list:
+def iterate_files(path: str, filetype: str, hidden=False) -> Generator[str, None, None]:
     """iterate through files as DirEntries to feed to fzf wrapper"""
     with os.scandir(path) as it:
         if filetype:
@@ -154,7 +155,7 @@ def parse_args():
     return filetype, exact, hidden, ignore, path, preview, recurse, verbose
 
 
-def recursive(path: str, hidden=None) -> list:
+def recursive(path: str, hidden=None) -> Generator[str, None, None]:
     """recursively yield DirEntries"""
     with os.scandir(path) as it:
         for entry in it:
