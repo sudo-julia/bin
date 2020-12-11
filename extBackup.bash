@@ -64,7 +64,7 @@ syncMain() {
 
 
 unmountClose () {
-	if [[ "$1" ]]; then
+	if [[ "$#" ]]; then
 		printf -- '%s\n' "Error: ${1}!"
 		read -rp "Unmount and close disk? [Y/n] " closeDisk
 		case "$closeDisk" in
