@@ -64,26 +64,46 @@ def main():
 
     # TODO is there a way to store options in a tuple and unload them into
     #      both functions?
-    if not recurse:
-        files = iterfzf(
-            iterable=(iterate_files(path, filetype, hidden)),
-            case_sensitive=ignore,
-            exact=exact,
-            encoding="utf-8",
-            height=height,
-            preview=preview,
-            multi=True,
-        )
-    else:
-        files = iterfzf(
-            iterable=(recursive(path, hidden)),
-            case_sensitive=ignore,
-            exact=exact,
-            encoding="utf-8",
-            height=height,
-            preview=preview,
-            multi=True,
-        )
+    try:
+        if not recurse:
+            files = iterfzf(
+                iterable=(iterate_files(path, filetype, hidden)),
+                case_sensitive=ignore,
+                exact=exact,
+                encoding="utf-8",
+                height=height,
+                preview=preview,
+                multi=True,
+            )
+        else:
+            files = iterfzf(
+                iterable=(recursive(path, hidden)),
+                case_sensitive=ignore,
+                exact=exact,
+                encoding="utf-8",
+                height=height,
+                preview=preview,
+                multi=True,
+            )
+    except TypeError:
+        if not recurse:
+            files = iterfzf(
+                iterable=(iterate_files(path, filetype, hidden)),
+                case_sensitive=ignore,
+                exact=exact,
+                encoding="utf-8",
+                preview=preview,
+                multi=True,
+            )
+        else:
+            files = iterfzf(
+                iterable=(recursive(path, hidden)),
+                case_sensitive=ignore,
+                exact=exact,
+                encoding="utf-8",
+                preview=preview,
+                multi=True,
+            )
 
     try:
         for f in files:
