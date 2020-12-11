@@ -16,6 +16,9 @@ set -eo pipefail
 # else
 #     :
 
+PACDIFF_RUN=0
+USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
+
 
 extraUpdates () {
 	# update extra programs and non-arch package managers
@@ -23,12 +26,12 @@ extraUpdates () {
 	if [[ ! "${user}" ]]; then
 		return
 	fi
-    sudo -u "${user}" zsh /home/"${user}"/bin/runZinit.zsh
+    sudo -u "${user}" zsh "${USER_HOME}"/bin/runZinit.zsh
     sudo -u "${user}" /usr/bin/tldr --update > /dev/null && \
 	printf -- 'Tldr cache updated.\n'
 	sudo -u "${user}" vim +PluginInstall +qall
 	printf -- 'Vim plugins updated.\n'
-	sudo -u "${user}" /home/"${user}"/bin/updatePip.bash
+	sudo -u "${user}" "${USER_HOME}"/bin/updatePip.bash
 	paccache -d
 	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
 	case "$response" in
@@ -38,9 +41,9 @@ extraUpdates () {
 		*)
 			printf -- '%s\n' "Skipping pacman cache."
 		esac
-    /home/"${user}"/bin/getInstalled.bash
+    "${USER_HOME}"/bin/getInstalled.bash
 	if [[ "$#" ]]; then
-		echo "${1}" >> /home/"${user}"/bin/.lastDate
+		echo "${1}" >> "${USER_HOME}"/bin/.lastDate
 		printf -- '\nNext full update will run on or after %d.\n' "${2}"
 	fi
 }
@@ -109,14 +112,6 @@ checkRoot() {
 }
 
 
-main () {
-	checkRoot
-	pacUpdate
-	checkLastDate
-	printPacdiff
-}
-
-
 pacUpdate() {
 	# run the main update
 	informant check
@@ -152,11 +147,9 @@ printPacdiff () {
 }
 
 
-PACDIFF_RUN=0
-
 if getent passwd "jam" > /dev/null; then
 	user=jam
-	pathToLastDate=/home/"${user}"/bin/.lastDate
+	pathToLastDate="${USER_HOME}"/bin/.lastDate
 else
 	# if this is unset, the program will ask if you'd like to update extras every time it's run
 	# change the user you're updating for here
@@ -165,6 +158,9 @@ else
 	pathToLastDate=
 fi
 
-main
+checkRoot
+pacUpdate
+checkLastDate
+printPacdiff
 
 exit 0

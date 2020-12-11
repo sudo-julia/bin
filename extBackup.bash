@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# back up /{etc,home,var} to external drive
+# back up /{etc,home,var} to a LUKS encrypted external drive
 
 # TODO allow these to be passed as arguments
 # TODO make include and exclude patterns as variables
+includeFile="/home/jam/bin/.rInclude"
+excludeFile="/home/jam/bin/.rExclude"
 externalDrive="/dev/sdc"
 logLocation="/tmp/extBackup-$( date '+%s' ).log"
 mountPoint="/mnt"
+USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
 
 checkDisk () {
 	if lsblk -l | grep '/dev/mapper/external' > /dev/null; then
@@ -40,8 +43,10 @@ checkRoot () {
 
 
 syncDirs () {
+	# run through all given directories to copy them, ignoring temp files
 	while (( "$#" )); do
-		rsync -apPy --exclude='*cache*' --log-file="${logLocation}" "${1}" '/mnt'
+		rsync -apPy --exclude={'*.cache','*cache/','*.tmp','*tmp/'} \
+		--log-file="${logLocation}" "${1}" "${mountPoint}"
 		shift
 	done
 	return 0
@@ -49,14 +54,17 @@ syncDirs () {
 
 
 syncMain() {
+	# sync user's "/home" and then "/var" and "/log"
+	# if you want to add another dir, just provide it as an arg to syncDirs
 	if ! rsync -aucPv \
-	--exclude-from=/home/jam/bin/.rExclude --include-from=/home/jam/bin/.rInclude \
-	--delete --delete-excluded  --log-file="${logLocation}" '/home/jam' '/mnt'; then
-		unmountClose "syncing '/home' failed"
+	--exclude-from="${excludeFile}" --include-from="${includeFile}" \
+	--delete --delete-excluded  --log-file="${logLocation}" \
+	"${USER_HOME}" "${mountPoint}"; then
+		unmountClose "Syncing '${USER_HOME}' failed"
 		exit 4
 	fi
 	if ! syncDirs "/etc" "/var"; then
-		unmountClose "syncing '/etc' and/or '/var' failed"
+		unmountClose "Syncing '/etc' and/or '/var' failed"
 		exit 4
 	fi
 	return 0
@@ -64,6 +72,7 @@ syncMain() {
 
 
 unmountClose () {
+	# unmount the external drive and close the LUKS container
 	if [[ "$#" ]]; then
 		printf -- '%s\n' "Error: ${1}!"
 		read -rp "Unmount and close disk? [Y/n] " closeDisk
@@ -77,6 +86,7 @@ unmountClose () {
 	fi
     umount '/mnt'
     cryptsetup close external
+	return 0
 }
 
 
