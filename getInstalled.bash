@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # send lists of installed programs to dir specified by date
 
+USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
 user=jam
-basedir=/home/"${user}"/documents/misc/installed
-currentDate=$( date "+%y%m%d" )
+basedir="${USER_HOME}"/documents/misc/installed
+currentDate=$( date "+%Y%m%d" )
 newDir="${basedir}"/"${currentDate}"
 
 

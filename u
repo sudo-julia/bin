@@ -66,8 +66,8 @@ checkLastDate() {
 	elif [[ -s "${pathToLastDate}" ]]; then
 		# check date to see if it's been a week since the last update
 		lastDate=$( tail -n1 "${pathToLastDate}" )
-		currentDate=$( date "+%y%m%d" )
-		currentDateLast=$( echo "${currentDate}" | cut -c5- )
+		currentDate=$( date "+%Y%m%d" )
+		currentDateLast=$( echo "${currentDate}" | cut -c7- )
 		if (( currentDateLast >= 26 )); then
 			nextDate=$( checkMonth )
 		else
@@ -82,8 +82,8 @@ checkLastDate() {
 
 checkMonth () {
 	# check the month and fix any incorrectly formatted dates
-	currentMonth=$( echo "${currentDate}" | cut -c3-4 )
-	newYear=$( echo "${currentDate}" | cut -c1-2 )
+	currentMonth=$( echo "${currentDate}" | cut -c5-6 )
+	newYear=$( echo "${currentDate}" | cut -c1-4 )
 	newMonth="$(( currentMonth + 1 ))"
 	if (( newMonth > 12 )); then
 		newMonth=1
