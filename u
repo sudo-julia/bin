@@ -118,7 +118,7 @@ pacUpdate() {
 	printf -- ':: Begin main update? [Y/n] '; read -r response
 	case "$response" in
 		y|Y)
-			pacman -Syu --noconfirm
+			pacman -Syu
 			pacdiff -o > /tmp/pacnew.out
 			if [[ ! "${user}" ]]; then
 				exit 0
