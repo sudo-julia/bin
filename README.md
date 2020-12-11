@@ -12,6 +12,7 @@
 
 - `mkbak.py` finds files, pipes them through `fzf` with `iterfzf`, and allows you to select files to create backups of
   - requires [iterfzf](https://github.com/dahlia/iterfzf)
+    - if you want the height option, (it's pretty nice), use my [fork](https://github.com/sudo-julia/iterfzf)
   - only runs with python3.6 or higher
 
 - `recordWindow.sh` records the current window in the background
