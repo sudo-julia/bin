@@ -123,35 +123,35 @@ def parse_args() -> Tuple[
     """parse arguments fed to script and set options"""
     # TODO make extension copying recursive
     # TODO arg addition to recursive that allows for depth to recurse
+    # TODO option to find by file or dir
     parser = argparse.ArgumentParser()
     main_args = parser.add_argument_group()
     matching_group = parser.add_mutually_exclusive_group()
 
     main_args.add_argument(
-        "-a", "--all", help="show hidden and 'dot' files", action="store_true"
+        "-a", "--all", help="show hidden and 'dot' files.", action="store_true"
     )
-    # TODO exact broke at filetype in iterate
     matching_group.add_argument(
-        "-e", "--exact", help="exact matching", action="store_true"
+        "-e", "--exact", help="exact matching.", action="store_true"
     )
     matching_group.add_argument(
         "-f",
         "--filetype",
         default=None,
-        help="only find files of a provided extension. recursion not supported",
+        help="only find files of a provided extension. recursion not supported.",
         type=str,
     )
     main_args.add_argument(
         "--height",
         default=100,
         help="""display fzf window with the given height. takes an
-                           int between 0-100""",
+                           int between 0-100.""",
         type=int,
     )
     matching_group.add_argument(
         "-i",
         "--ignore_case",
-        help="ignore case distinction",
+        help="ignore case distinction.",
         action="store_true",
     )
     main_args.add_argument(
@@ -160,7 +160,7 @@ def parse_args() -> Tuple[
     main_args.add_argument(
         "--preview",
         default=None,
-        help="starts external process with current line as arg",
+        help="starts external process with current line as arg.",
         type=str,
     )
     main_args.add_argument(
