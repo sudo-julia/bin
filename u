@@ -5,8 +5,8 @@ set -eo pipefail
 # requires informant, pacman-contrib and yay
 
 
+# TODO switch reads to -rp
 # TODO check for installed programs before extraUpdates
-# TODO offer to remove orphan packages along with cache
 # TODO Add updater for cargo and check for failures
 #      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
 #### CARGO UPDATER PSEUDOCODE
@@ -18,6 +18,31 @@ set -eo pipefail
 
 PACDIFF_RUN=0
 USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
+
+pacUpdate() {
+	# run the main update
+	informant check
+	printf -- ':: Begin main update? [Y/n] '; read -r response
+	case "$response" in
+		y|Y)
+			pacman -Syu
+			pacdiff -o > /tmp/pacnew.out
+			if [[ ! "${user}" ]]; then
+				exit 0
+			else
+				printf -- ':: Also update AUR packages? [Y/n] '; read -r response
+				case "$response" in
+					y|Y)
+						sudo -u "${user}" yay -Syua  ;;
+					*)
+						printf -- '%s\n' "Skipping AUR packages"
+				esac
+			fi  ;;
+		*)
+			printf -- '%s\n' "Cancelling update."
+			exit 0
+	esac
+}
 
 
 extraUpdates () {
@@ -32,6 +57,7 @@ extraUpdates () {
 	sudo -u "${user}" vim +PluginInstall +qall
 	printf -- 'Vim plugins updated.\n'
 	sudo -u "${user}" "${USER_HOME}"/bin/updatePip.bash
+	removeOrphans
 	paccache -d
 	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
 	case "$response" in
@@ -112,37 +138,29 @@ checkRoot() {
 }
 
 
-pacUpdate() {
-	# run the main update
-	informant check
-	printf -- ':: Begin main update? [Y/n] '; read -r response
-	case "$response" in
-		y|Y)
-			pacman -Syu
-			pacdiff -o > /tmp/pacnew.out
-			if [[ ! "${user}" ]]; then
-				exit 0
-			else
-				printf -- ':: Also update AUR packages? [Y/n] '; read -r response
-				case "$response" in
-					y|Y)
-						sudo -u "${user}" yay -Syua  ;;
-					*)
-						printf -- '%s\n' "Skipping AUR packages"
-				esac
-			fi  ;;
-		*)
-			printf -- '%s\n' "Cancelling update."
-			exit 0
-	esac
-}
-
-
 printPacdiff () {
 	# print out any pacnew files
 	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
 		PACDIFF_RUN=1
+	fi
+}
+
+
+removeOrphans () {
+	# remove orphaned pacman packages
+	if pacman -Qdtq >/dev/null; then
+		printf -- '%s\n' "Orphaned packages are:"
+		pacman -Qdt
+		printf -- '%s' "Remove orphan packages? "; read -r response
+		case "$response" in
+			y|Y)
+				pacman -R "$(pacman -Qdtq)"  ;;
+			*)
+				printf -- '%s\n' "Leaving orphaned packages."
+		esac
+	else
+		printf -- '%s\n' "No orphaned packages."
 	fi
 }
 

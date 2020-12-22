@@ -2,9 +2,11 @@
 
 # adjust brightness levels
 # support for a laptop and one external monitor through xrandr brightness
+# occasionally it takes a while to run xbacklight after xrandr, is prob kernel issue
 
 # change this to match your external monitor's name.
 # if you don't know it, run `xrandr | grep 'connected | grep -v 'dis'`
+extConnected=false
 extMonitor=HDMI-0
 extStatus=$( xrandr | awk "/$extMonitor/"'{print $2}' )
 if [[ "$extStatus" = connected ]]; then

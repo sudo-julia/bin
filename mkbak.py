@@ -8,6 +8,7 @@ from iterfzf import iterfzf
 
 
 __version__ = "v0.4.0"
+# TODO put iterators in a class
 
 
 def copy_all(file: str, location: str):
@@ -121,6 +122,7 @@ def parse_args() -> Tuple[
     bool, Optional[str], str, bool, bool, str, Optional[str], bool, bool
 ]:
     """parse arguments fed to script and set options"""
+    # TODO argument to give a file or list of files and back those up
     # TODO make extension copying recursive
     # TODO arg addition to recursive that allows for depth to recurse
     # TODO option to find by file or dir

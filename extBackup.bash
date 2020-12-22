@@ -2,8 +2,9 @@
 set -euo pipefail
 # back up /{etc,home,var} to a LUKS encrypted external drive
 
-# TODO allow these to be passed as arguments
+# TODO add option for progress bar, no output and verbose (current)
 # TODO make include and exclude patterns as variables
+# TODO allow these to be passed as arguments
 includeFile="/home/jam/bin/.rInclude"
 excludeFile="/home/jam/bin/.rExclude"
 externalDrive="/dev/sdc"

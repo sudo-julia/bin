@@ -11,7 +11,7 @@ newDir="${basedir}"/"${currentDate}"
 getInstalled() {
 	if [[ $SETTING_WITH_GIT ]]; then
 		if [[ ! -d "${basedir}"/.git ]]; then
-			( cd "${basedir}" && git init )
+			git init "${basedir}"
 		fi
 	fi
 
@@ -34,16 +34,23 @@ getInstalled() {
 	printf -- '%s %s\n' "Installed programs backed up to" "${newDir}"
 }
 
-# TODO better help section
+# TODO option to set output dir
 case "$1" in
 	-g|--git)
 		SETTING_WITH_GIT=ON
 		getInstalled
 		;;
 	-h|--help)
-		printf 'Usage:\ngetInstalled.bash [-g|--git]\n-g\tProvides git integration\n\n'
-		exit 0
+		cat <<-EOF
+			Usage:
+			  getInstalled.bash [options] [dir]
+
+			OPTIONS
+			  -g, --git    Use git for storing history
+		EOF
 		;;
 	*)
 		getInstalled
 esac
+
+exit 0
