@@ -56,7 +56,7 @@ extraUpdates () {
 	printf -- 'Tldr cache updated.\n'
 	sudo -u "${user}" vim +PluginInstall +qall
 	printf -- 'Vim plugins updated.\n'
-	sudo -u "${user}" "${USER_HOME}"/bin/updatePip.bash
+	sudo -u "${user}" "${USER_HOME}"/bin/upgradePip.bash
 	removeOrphans
 	printf -- '%s\n' "Checking pacman cache for old packages..."
 	paccache -d
