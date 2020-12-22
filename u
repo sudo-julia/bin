@@ -58,6 +58,7 @@ extraUpdates () {
 	printf -- 'Vim plugins updated.\n'
 	sudo -u "${user}" "${USER_HOME}"/bin/updatePip.bash
 	removeOrphans
+	printf -- '%s\n' "Checking pacman cache for old packages..."
 	paccache -d
 	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
 	case "$response" in
@@ -152,10 +153,10 @@ removeOrphans () {
 	if pacman -Qdtq >/dev/null; then
 		printf -- '%s\n' "Orphaned packages are:"
 		pacman -Qdt
-		printf -- '%s' "Remove orphan packages? "; read -r response
+		printf -- '%s' "Remove orphan packages? [Y/n] "; read -r response
 		case "$response" in
 			y|Y)
-				pacman -R "$(pacman -Qdtq)"  ;;
+				pacman -R --noconfirm "$(pacman -Qdtq)"  ;;
 			*)
 				printf -- '%s\n' "Leaving orphaned packages."
 		esac
