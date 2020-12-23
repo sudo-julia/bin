@@ -7,24 +7,27 @@ set -euo pipefail
 # TODO allow these to be passed as arguments
 includeFile="/home/jam/bin/.rInclude"
 excludeFile="/home/jam/bin/.rExclude"
+
+cryptDevice="external"
 externalDrive="/dev/sdc"
-logLocation="/tmp/extBackup-$( date '+%s' ).log"
 mountPoint="/mnt"
+
+logLocation="/tmp/extBackup-$( date '+%s' ).log"
 USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
 
 checkDisk () {
-	if lsblk -l | grep '/dev/mapper/external' > /dev/null; then
-		cryptsetup open "${externalDrive}" external
-		printf -- '%s\n' "${externalDrive} opened as 'external'"
+	if ! lsblk -l | grep "/dev/mapper/${cryptDevice}" > /dev/null; then
+		cryptsetup open "${externalDrive}" "${cryptDevice}"
+		printf -- '%s\n' "${externalDrive} opened as '${cryptDevice}'"
 	else
-		printf -- '%s\n' "${externalDrive} already open as 'external'"
+		printf -- '%s\n' "${externalDrive} already open as '${cryptDevice}'"
 	fi
 
 	if ! df | awk '{print $6}' | grep "${mountPoint}" > /dev/null; then
-		mount '/dev/mapper/external' "${mountPoint}"
-		printf -- '%s\n' "'external' mounted to ${mountPoint}"
-	elif [[ "$( df '/mnt' | awk 'NR==2 {print $1}' )" == /dev/mapper/external ]]; then
-		printf -- '%s\n' "'external' already mounted to ${mountPoint}"
+		mount "/dev/mapper/${cryptDevice}" "${mountPoint}"
+		printf -- '%s\n' "'${cryptDevice}' mounted to ${mountPoint}"
+	elif [[ "$( df '/mnt' | awk 'NR==2 {print $1}' )" == /dev/mapper/"${cryptDevice}" ]]; then
+		printf -- '%s\n' "'${cryptDevice}' already mounted to ${mountPoint}"
 	else
 		unmountClose "${mountPoint} in use by another device"
 		exit 1
@@ -86,7 +89,7 @@ unmountClose () {
 		esac
 	fi
     umount '/mnt'
-    cryptsetup close external
+    cryptsetup close "${cryptDevice}"
 	return 0
 }
 

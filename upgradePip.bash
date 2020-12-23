@@ -3,8 +3,7 @@
 # DO NOT RUN AS SUPERUSER
 
 # get the python version
-# TODO update this to allow double digit version numbers before next release
-pythonVer=$( env pip --version | grep -o '\(python [0-3]\.[0-9]\)' | tr -d ' ' )
+pythonVer=$( env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b' )
 # set the output location for installed packages at runtime
 outputLoc="${HOME}/.local/lib/${pythonVer}/installed/$( date +'%Y-%m-%dT%H:%M:%S' )"
 

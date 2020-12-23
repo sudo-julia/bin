@@ -156,7 +156,7 @@ removeOrphans () {
 		printf -- '%s' "Remove orphan packages? [Y/n] "; read -r response
 		case "$response" in
 			y|Y)
-				pacman -R --noconfirm "$(pacman -Qdtq)"  ;;
+				pacman -Rns --noconfirm "$(pacman -Qdtq)"  ;;
 			*)
 				printf -- '%s\n' "Leaving orphaned packages."
 		esac
