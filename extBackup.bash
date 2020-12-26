@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 # back up /{etc,home,var} to a LUKS encrypted external drive
 
 # TODO add option for progress bar, no output and verbose (current)
@@ -16,7 +15,8 @@ logLocation="/tmp/extBackup-$( date '+%s' ).log"
 USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
 
 checkDisk () {
-	if ! lsblk -l | grep "/dev/mapper/${cryptDevice}" > /dev/null; then
+	# TODO this section is finicky, make sure it responds properly
+	if lsblk -l | grep "/dev/mapper/${cryptDevice}" > /dev/null; then
 		cryptsetup open "${externalDrive}" "${cryptDevice}"
 		printf -- '%s\n' "${externalDrive} opened as '${cryptDevice}'"
 	else
@@ -39,6 +39,7 @@ checkDisk () {
 
 
 checkRoot () {
+	# exit if user is not root
 	if [[ "$( id -u )" -ne 0 ]]; then
 		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling operation."
 		exit 1
@@ -46,38 +47,56 @@ checkRoot () {
 }
 
 
+syncMain() {
+	# sync user's "/home" and then "/var" and "/etc"
+	# if you want to add another dir, just provide it as an arg to syncDirs
+	# TODO make verbosity an option
+	if ! rsync -maucP \
+	--exclude-from="${excludeFile}" \
+	--include-from="${includeFile}" \
+	--delay-updates \
+	--delete-delay \
+	--delete-excluded  \
+	--ignore-existing \
+	--log-file="${logLocation}" \
+	"${USER_HOME}" "${mountPoint}"; \
+	then
+		unmountClose "Syncing '${USER_HOME}' failed"
+		exit 4
+	else
+		printf -- '%s\n' "'/home' successfully synced"
+	fi
+
+	if ! syncDirs "/etc" "/var"; then
+		unmountClose "Syncing '/etc' and/or '/var' failed"
+		exit 4
+	else
+		printf -- '%s\n' "'/etc' and '/var' successfully synced"
+	fi
+	return 0
+}
+
+
 syncDirs () {
 	# run through all given directories to copy them, ignoring temp files
 	while (( "$#" )); do
-		rsync -apPy --exclude={'*.cache','*cache/','*.tmp','*tmp/'} \
-		--log-file="${logLocation}" "${1}" "${mountPoint}"
+		rsync -mapPy \
+		--exclude={'*.cache','*cache/','*.tmp','*tmp/'} \
+		--delay-updates \
+		--delete-delay \
+		--delete-excluded \
+		--ignore-existing \
+		--log-file="${logLocation}" \
+		"${1}" "${mountPoint}"
 		shift
 	done
 	return 0
 }
 
 
-syncMain() {
-	# sync user's "/home" and then "/var" and "/log"
-	# if you want to add another dir, just provide it as an arg to syncDirs
-	if ! rsync -aucPv \
-	--exclude-from="${excludeFile}" --include-from="${includeFile}" \
-	--delete --delete-excluded  --log-file="${logLocation}" \
-	"${USER_HOME}" "${mountPoint}"; then
-		unmountClose "Syncing '${USER_HOME}' failed"
-		exit 4
-	fi
-	if ! syncDirs "/etc" "/var"; then
-		unmountClose "Syncing '/etc' and/or '/var' failed"
-		exit 4
-	fi
-	return 0
-}
-
-
 unmountClose () {
 	# unmount the external drive and close the LUKS container
-	if [[ "$#" ]]; then
+	if (( $# == 1 )); then
 		printf -- '%s\n' "Error: ${1}!"
 		read -rp "Unmount and close disk? [Y/n] " closeDisk
 		case "$closeDisk" in
@@ -88,7 +107,7 @@ unmountClose () {
 				exit 2
 		esac
 	fi
-    umount '/mnt'
+    umount "${mountPoint}"
     cryptsetup close "${cryptDevice}"
 	return 0
 }

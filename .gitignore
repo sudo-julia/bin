@@ -6,5 +6,5 @@ chromedriver
 extras/
 geckodriver
 git-prompt.sh
-runZinit.zsh
 screenshot.bash
+updateZinit.zsh

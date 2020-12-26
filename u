@@ -1,28 +1,16 @@
 #!/usr/bin/env bash
-set -eo pipefail
-
 # update system on arch, calls aur sep w extra util for aux programs (date-based) at end
 # requires informant, pacman-contrib and yay
-
-
-# TODO switch reads to -rp
-# TODO check for installed programs before extraUpdates
-# TODO Add updater for cargo and check for failures
-#      this can be `if [ cmd ]; then \nprintf --'cmd updated\n'`
-#### CARGO UPDATER PSEUDOCODE
-# if "~/.cargo" exists; then
-#     for dir that is not in {'bin', 'git', 'registry'}:
-#         (cd "${DIR}" && cargo update)
-# else
-#     :
+set -o pipefail
 
 PACDIFF_RUN=0
 USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
 
-pacUpdate() {
+updateSystem() {
 	# run the main update
+	set -e
 	informant check
-	printf -- ':: Begin main update? [Y/n] '; read -r response
+	read -rp ":: Begin main update? [Y/n] " response
 	case "$response" in
 		y|Y)
 			pacman -Syu
@@ -30,7 +18,7 @@ pacUpdate() {
 			if [[ ! "${user}" ]]; then
 				exit 0
 			else
-				printf -- ':: Also update AUR packages? [Y/n] '; read -r response
+				read -rp ":: Also update AUR packages? [Y/n] " response
 				case "$response" in
 					y|Y)
 						sudo -u "${user}" yay -Syua  ;;
@@ -44,23 +32,60 @@ pacUpdate() {
 	esac
 }
 
-
-extraUpdates () {
+updateExtras () {
 	# update extra programs and non-arch package managers
 	# if you don't want to use any of these, simply delete or comment-out the line
 	if [[ ! "${user}" ]]; then
-		return
+		return 1
 	fi
-    sudo -u "${user}" zsh "${USER_HOME}"/bin/runZinit.zsh
-    sudo -u "${user}" /usr/bin/tldr --update > /dev/null && \
-	printf -- 'Tldr cache updated.\n'
-	sudo -u "${user}" vim +PluginInstall +qall
-	printf -- 'Vim plugins updated.\n'
-	sudo -u "${user}" "${USER_HOME}"/bin/upgradePip.bash
+	if [[ -s "${USER_HOME}"/bin/runZinit.zsh ]] && \
+	[[ -s "${USER_HOME}"/bin/upgradePip.bash ]]; then
+		sudo -u "${user}" zsh "${USER_HOME}"/bin/runZinit.zsh
+		sudo -u "${user}" "${USER_HOME}"/bin/upgradePip.bash
+	fi
+	if hash tldr >/dev/null; then
+		sudo -u "${user}" /usr/bin/tldr --update \
+		| sed 's/ cache/ tldr cache/'
+	fi
+	updateVimPlugins
 	removeOrphans
+	clearPacCache
+	"${USER_HOME}"/bin/getInstalled.bash
+	if [[ "$#" ]]; then
+		echo "${1}" >> "${USER_HOME}"/bin/.lastDate
+		printf -- '\nNext full update will run on or after %d.\n' "${2}"
+	fi
+}
+
+updateVimPlugins () {
+	# set your vim plugin manager's commands here
+	printf -- '%s\n' "Updating vim plugins..."
+	sudo -u "${user}" vim +PlugUpdate && \
+	sudo -u "${user}" vim +PlugUpgrade && \
+	printf -- '%s\n' "Vim plugins updated."
+}
+
+removeOrphans () {
+	# remove orphaned pacman packages
+	if pacman -Qdtq >/dev/null; then
+		printf -- '%s\n' "Orphaned packages are:"
+		pacman -Qdt
+		read -rp "Remove orphan packages? [Y/n] " response
+		case "$response" in
+			y|Y)
+				pacman -Rns --noconfirm "$(pacman -Qdtq)"  ;;
+			*)
+				printf -- '%s\n' "Leaving orphaned packages."
+		esac
+	else
+		printf -- '%s\n' "No orphaned packages."
+	fi
+}
+
+clearPacCache () {
 	printf -- '%s\n' "Checking pacman cache for old packages..."
 	paccache -d
-	printf -- ':: Clear pacman cache? [Y/n] '; read -r response
+	read -rp ":: Clear pacman cache? [Y/n] " response
 	case "$response" in
 		y|Y)
 			paccache -rv
@@ -68,22 +93,16 @@ extraUpdates () {
 		*)
 			printf -- '%s\n' "Skipping pacman cache."
 		esac
-    "${USER_HOME}"/bin/getInstalled.bash
-	if [[ "$#" ]]; then
-		echo "${1}" >> "${USER_HOME}"/bin/.lastDate
-		printf -- '\nNext full update will run on or after %d.\n' "${2}"
-	fi
 }
 
-
 checkLastDate() {
-	# check if it's time to run extraUpdates
+	# check if it's time to run updateExtras
 	if [[ ! "${pathToLastDate}" ]]; then
 		# if the user doesn't want to make lastDate file
-		printf 'Update other programs? '; read -r response
+		read -rp "Update other programs? " response
 		case "${response}" in
 			y|Y)
-				extraUpdates  ;;
+				updateExtras  ;;
 			*)
 				printf -- '%s\n' "Skipping extra updates."
 		esac
@@ -101,11 +120,10 @@ checkLastDate() {
 			nextDate=$(( lastDate + 7 ))
 		fi
 		if [[ "${currentDate}" -ge "${nextDate}" ]]; then
-			extraUpdates "${currentDate}" "${nextDate}"
+			updateExtras "${currentDate}" "${nextDate}"
 		fi
 	fi
 }
-
 
 checkMonth () {
 	# check the month and fix any incorrectly formatted dates
@@ -129,15 +147,14 @@ checkMonth () {
 	echo "${newDate}"
 }
 
-
 checkRoot() {
 	# exit program if not run as root
+	set -o pipefail
 	if [[ "$( id -u )" -ne 0 ]]; then
 		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
 		exit 1
 	fi
 }
-
 
 printPacdiff () {
 	# print out any pacnew files
@@ -148,37 +165,20 @@ printPacdiff () {
 }
 
 
-removeOrphans () {
-	# remove orphaned pacman packages
-	if pacman -Qdtq >/dev/null; then
-		printf -- '%s\n' "Orphaned packages are:"
-		pacman -Qdt
-		printf -- '%s' "Remove orphan packages? [Y/n] "; read -r response
-		case "$response" in
-			y|Y)
-				pacman -Rns --noconfirm "$(pacman -Qdtq)"  ;;
-			*)
-				printf -- '%s\n' "Leaving orphaned packages."
-		esac
-	else
-		printf -- '%s\n' "No orphaned packages."
-	fi
-}
-
-
 if getent passwd "jam" > /dev/null; then
 	user=jam
 	pathToLastDate="${USER_HOME}"/bin/.lastDate
 else
 	# if this is unset, the program will ask if you'd like to update extras every time it's run
 	# change the user you're updating for here
-	user=
+	# user=$( echo "$USER_HOME" | cut -d'/' -f3 ) # you can also use this to get $user automatically
+	user=""
 	# if you want extra updates to run automatically, place the file to read them from here
-	pathToLastDate=
+	pathToLastDate=""
 fi
 
 checkRoot
-pacUpdate
+updateSystem
 checkLastDate
 printPacdiff
 
