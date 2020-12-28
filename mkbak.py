@@ -51,18 +51,6 @@ def iterate_files(
 
 
 def main():
-    (
-        exact,
-        filetype,
-        height,
-        hidden,
-        ignore,
-        path,
-        preview,
-        recurse,
-        verbose,
-    ) = parse_args()
-
     # TODO is there a way to store options in a tuple and unload them into
     #      both functions?
     try:
@@ -118,10 +106,23 @@ def main():
     exit(0)
 
 
-def parse_args() -> Tuple[
-    bool, Optional[str], str, bool, bool, str, Optional[str], bool, bool
-]:
-    """parse arguments fed to script and set options"""
+def recursive(path: str, hidden=None) -> Generator[str, None, None]:
+    """recursively yield DirEntries"""
+    with os.scandir(path) as it:
+        for entry in it:
+            if not hidden and entry.name.startswith("."):
+                pass
+            else:
+                try:
+                    if entry.is_dir(follow_symlinks=False):
+                        yield from recursive(entry.path, hidden)
+                    else:
+                        yield entry.path
+                except PermissionError:
+                    pass
+
+
+if __name__ == "__main__":
     # TODO argument to give a file or list of files and back those up
     # TODO make extension copying recursive
     # TODO arg addition to recursive that allows for depth to recurse
@@ -193,24 +194,4 @@ def parse_args() -> Tuple[
     else:
         height = "100%"
 
-    return exact, filetype, height, hidden, ignore, path, preview, recurse, verbose
-
-
-def recursive(path: str, hidden=None) -> Generator[str, None, None]:
-    """recursively yield DirEntries"""
-    with os.scandir(path) as it:
-        for entry in it:
-            if not hidden and entry.name.startswith("."):
-                pass
-            else:
-                try:
-                    if entry.is_dir(follow_symlinks=False):
-                        yield from recursive(entry.path, hidden)
-                    else:
-                        yield entry.path
-                except PermissionError:
-                    pass
-
-
-if __name__ == "__main__":
     main()
