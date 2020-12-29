@@ -114,17 +114,19 @@ checkLastDate() {
 		lastDate=$( tail -n1 "${pathToLastDate}" )
 		currentDate=$( date "+%Y%m%d" )
 		currentDateLast=$( echo "${currentDate}" | cut -c7- )
-		if (( currentDateLast >= 26 )); then
-			nextDate=$( checkMonth )
-		else
-			nextDate=$(( lastDate + 7 ))
-		fi
+		# if (( currentDateLast >= 26 )); then
+		#	 nextDate=$( checkMonth )
+		# else
+		#	 nextDate=$(( lastDate + 7 ))
+		# fi
+		nextDate=$(( lastDate + 7 ))
 		if [[ "${currentDate}" -ge "${nextDate}" ]]; then
 			updateExtras "${currentDate}" "${nextDate}"
 		fi
 	fi
 }
 
+# TODO she's broken
 checkMonth () {
 	# check the month and fix any incorrectly formatted dates
 	currentMonth=$( echo "${currentDate}" | cut -c5-6 )
