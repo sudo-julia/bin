@@ -1,13 +1,20 @@
-#!/usr/bin/env python3
+"""
+iterate through files, feed them to 'iterfzf' for selection
+and make backups of the chosen files
+"""
 import argparse
 import os
 import shutil
 import stat
-from typing import Generator, Optional, Tuple
+import sys
+from typing import Generator, Optional
 from iterfzf import iterfzf
 
 
 __version__ = "v0.4.0"
+# pylint: disable=fixme, unsubscriptable-object
+# TODO remove unsubscriptable-object once pylint updates (currnetly broken on typing,
+# see issue #3882)
 # TODO put iterators in a class
 
 
@@ -20,28 +27,28 @@ def copy_all(file: str, location: str):
     except NotADirectoryError:
         shutil.copy2(file, location)
     # copy owner and group
-    st = os.stat(file)
-    os.chown(location, st[stat.ST_UID], st[stat.ST_GID])
+    owner_group = os.stat(file)
+    os.chown(location, owner_group[stat.ST_UID], owner_group[stat.ST_GID])
 
 
 def iterate_files(
-    path: str, filetype: Optional[str], hidden=False
+    search_path: str, file_ext: Optional[str], find_hidden=False
 ) -> Generator[str, None, None]:
     """iterate through files as DirEntries to feed to fzf wrapper"""
-    with os.scandir(path) as it:
-        if filetype:
-            for entry in it:
-                if not hidden and entry.name.startswith("."):
+    with os.scandir(search_path) as iterated:
+        if file_ext:
+            for entry in iterated:
+                if not find_hidden and entry.name.startswith("."):
                     pass
                 else:
-                    if entry.name.endswith(filetype):
+                    if entry.name.endswith(file_ext):
                         try:
                             yield entry.path
                         except PermissionError:
                             pass
-        elif not filetype:
-            for entry in it:
-                if not hidden and entry.name.startswith("."):
+        elif not file_ext:
+            for entry in iterated:
+                if not find_hidden and entry.name.startswith("."):
                     pass
                 else:
                     try:
@@ -51,6 +58,7 @@ def iterate_files(
 
 
 def main():
+    """:"""
     # TODO is there a way to store options in a tuple and unload them into
     #      both functions?
     try:
@@ -60,7 +68,7 @@ def main():
                 case_sensitive=ignore,
                 exact=exact,
                 encoding="utf-8",
-                height=height,
+                height=HEIGHT,
                 preview=preview,
                 multi=True,
             )
@@ -70,7 +78,7 @@ def main():
                 case_sensitive=ignore,
                 exact=exact,
                 encoding="utf-8",
-                height=height,
+                height=HEIGHT,
                 preview=preview,
                 multi=True,
             )
@@ -95,22 +103,22 @@ def main():
             )
 
     try:
-        for f in files:
-            location = f"{f}.bak"
-            copy_all(f, location)
+        for file in files:
+            location = f"{file}.bak"
+            copy_all(file, location)
             if verbose:
-                print(f"{f} -> {location}")
+                print(f"{file} -> {location}")
     except TypeError:
         pass
 
-    exit(0)
+    sys.exit(0)
 
 
-def recursive(path: str, hidden=None) -> Generator[str, None, None]:
+def recursive(search_path: str, find_hidden=None) -> Generator[str, None, None]:
     """recursively yield DirEntries"""
-    with os.scandir(path) as it:
-        for entry in it:
-            if not hidden and entry.name.startswith("."):
+    with os.scandir(search_path) as iterated:
+        for entry in iterated:
+            if not find_hidden and entry.name.startswith("."):
                 pass
             else:
                 try:
@@ -178,7 +186,7 @@ if __name__ == "__main__":
 
     exact: bool = args.exact
     filetype: Optional[str] = args.filetype
-    height: str
+    HEIGHT: str = str(args.height) + "%" if args.height in range(0, 101) else "100%"
     hidden: bool = args.all
     ignore: bool = args.ignore_case
     path: str = args.path
@@ -188,10 +196,11 @@ if __name__ == "__main__":
 
     if args.version:
         print(f"mkbak.py {__version__}")
-        exit(0)
-    if args.height in range(0, 101):
-        height = str(args.height) + "%"
-    else:
-        height = "100%"
+        sys.exit(0)
+    # set height as a constant, using a oneliner if-else statement
+    # if args.height in range(0, 101):
+    #    height = str(args.height) + "%"
+    # else:
+    #    height = "100%"
 
     main()
