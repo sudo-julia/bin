@@ -8,5 +8,5 @@ geckodriver
 git-prompt.sh
 oil*
 osh
-screenshot.bash
+screenshot.sh
 updateZinit.zsh

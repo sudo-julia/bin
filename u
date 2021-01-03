@@ -4,7 +4,7 @@
 set -o pipefail
 
 PACDIFF_RUN=0
-USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
+USER_HOME=$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )
 
 updateSystem() {
 	# run the main update
@@ -100,7 +100,7 @@ checkLastDate() {
 	if [[ ! "${pathToLastDate}" ]]; then
 		# if the user doesn't want to make lastDate file
 		read -rp "Update other programs? " response
-		case "${response}" in
+		case "$response" in
 			y|Y)
 				updateExtras  ;;
 			*)
@@ -126,7 +126,7 @@ checkLastDate() {
 	fi
 }
 
-# TODO she's broken
+# TODO s(he's) br(ok)en
 checkMonth () {
 	# check the month and fix any incorrectly formatted dates
 	currentMonth=$( echo "${currentDate}" | cut -c5-6 )
@@ -160,7 +160,7 @@ checkRoot() {
 
 printPacdiff () {
 	# print out any pacnew files
-	if [[ "${PACDIFF_RUN}" -eq 0 ]] && [[ -s /tmp/pacnew.out ]]; then
+	if [[ "${PACDIFF_RUN}" -eq 0 && -s /tmp/pacnew.out ]]; then
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
 		PACDIFF_RUN=1
 	fi

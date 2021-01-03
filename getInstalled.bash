@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 # send lists of installed programs to dir specified by date
 
-USER_HOME=$( getent passwd "$SUDO_USER" | cut -d':' -f6 )
-user=$( echo "$USER_HOME" | cut -d'/' -f3 )
+USER_HOME=$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )
+user=$( echo "${USER_HOME}" | cut -d'/' -f3 )
 basedir="${USER_HOME}"/documents/misc/installed
 currentDate=$( date "+%Y%m%d" )
 newDir="${basedir}"/"${currentDate}"
 
-
 getInstalled() {
-	if [[ $SETTING_WITH_GIT ]]; then
+	if [[ "${SETTING_WITH_GIT}" ]]; then
 		if [[ ! -d "${basedir}"/.git ]]; then
 			git init "${basedir}"
 		fi
