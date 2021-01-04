@@ -11,6 +11,7 @@
   - also separates AUR/local packages into a separate file
 
 - `mkbak.py` finds files, pipes them through `fzf` with `iterfzf`, and allows you to select files to create backups of
+  - `mkbak.py` has been moved to its [own repository](https://github.com/sudo-julia/mkbak)
   - requires [iterfzf](https://github.com/dahlia/iterfzf)
     - if you want the height option, (it's pretty nice), use my [fork](https://github.com/sudo-julia/iterfzf)
   - only runs with python3.6 or higher

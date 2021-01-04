@@ -6,7 +6,6 @@ chromedriver
 extras/
 geckodriver
 git-prompt.sh
-oil*
-osh
+mkbak.py
 screenshot.sh
 updateZinit.zsh
