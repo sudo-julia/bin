@@ -3,12 +3,12 @@
 # DO NOT RUN AS SUPERUSER
 
 # get the python version
-pythonVer=$( env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b' )
+pythonVer="$( env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b' )"
 # set the output location for installed packages at runtime
 outputLoc="${HOME}/.local/lib/${pythonVer}/installed/$( date +'%Y-%m-%dT%H:%M:%S' )"
 
 # exit if script is run as root
-if [[ "$( id -u )" == 0 ]]; then
+if (( "$( id -u )" == 0 )); then
 	printf -- '%s\n%s\n' "Error! Do not run as root." "Cancelling..."
 	exit 1
 fi
@@ -26,6 +26,6 @@ pip list -o \
 	| tee "${outputLoc} "\
 	| grep -Ev 'sdist|--|Latest\s' \
 	| cut -d' ' -f1 \
-	| xargs -r -n1 pip install --user -U && \
-printf -- '%s\n' "Pip packages upgraded."
+	| xargs -r -n1 pip install --user -U \
+	&& printf -- '%s\n' "Pip packages upgraded."
 exit 0

@@ -7,18 +7,18 @@ launch_picom () {
 }
 
 WALLPAPERS="${HOME}/documents/pictures/wallpapers"
-CONNECTED=$( xrandr | awk '/HDMI-0/ {print $2}' )
+CONNECTED="$( xrandr | awk '/HDMI-0/ {print $2}' | cut -d' ' -f2)" # TODO condense cut to awk
 
 if [[ "${CONNECTED}" == connected ]]; then
     xrandr --output HDMI-0 --auto --left-of DP-0
-	feh --bg-fill "${WALLPAPERS}"/desktop01.png "${WALLPAPERS}"/desktop02.png
+	feh --no-fehbg --bg-fill -- "${WALLPAPERS}/desktop01.png" "${WALLPAPERS}/desktop02.png"
     launch_picom
-    "${HOME}"/.config/polybar/scripts/launch.sh
+    "${HOME}/.config/polybar/scripts/launch.sh"
 elif [[ "${CONNECTED}" == disconnected ]]; then
     xrandr --output HDMI-0 --off --auto
-    feh --bg-fill "${WALLPAPERS}"/desktop02.png
+    feh --no-fehbg --bg-fill -- "${WALLPAPERS}/desktop02.png"
     launch_picom
-    "${HOME}"/.config/polybar/scripts/launch.sh
+    "${HOME}/.config/polybar/scripts/launch.sh"
 else
     exit 1
 fi

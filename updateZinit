@@ -1,0 +1,5 @@
+#!/bin/zsh
+# run zinit, mainly for use in `u`
+source ~/.zinit/bin/zinit.zsh
+zinit self-update
+zinit update --all

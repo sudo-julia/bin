@@ -4,9 +4,9 @@
 set -o pipefail
 
 PACDIFF_RUN=0
-USER_HOME=$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )
+USER_HOME="$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )"
 
-updateSystem() {
+update_system() {
 	# run the main update
 	set -e
 	informant check
@@ -15,57 +15,59 @@ updateSystem() {
 		y|Y)
 			pacman -Syu
 			pacdiff -o > /tmp/pacnew.out
-			if [[ ! "${user}" ]]; then
+			if [[ -z "${user}" ]]; then
 				exit 0
 			else
 				read -rp ":: Also update AUR packages? [Y/n] " response
 				case "$response" in
 					y|Y)
-						sudo -u "${user}" yay -Syua  ;;
+						sudo -u "${user}" yay -Syua
+						;;
 					*)
 						printf -- '%s\n' "Skipping AUR packages"
 				esac
-			fi  ;;
+			fi
+			;;
 		*)
 			printf -- '%s\n' "Cancelling update."
 			exit 0
 	esac
 }
 
-updateExtras () {
+update_extras() {
 	# update extra programs and non-arch package managers
 	# if you don't want to use any of these, simply delete or comment-out the line
-	if [[ ! "${user}" ]]; then
+	if [[ -z "${user}" ]]; then
 		return 1
 	fi
-	if [[ -s "${USER_HOME}"/bin/runZinit.zsh ]] && \
-	[[ -s "${USER_HOME}"/bin/upgradePip.bash ]]; then
-		sudo -u "${user}" zsh "${USER_HOME}"/bin/runZinit.zsh
-		sudo -u "${user}" "${USER_HOME}"/bin/upgradePip.bash
+	if [[ -s "${USER_HOME}/bin/updateZinit" ]] \
+	&& [[ -s "${USER_HOME}/bin/upgradePip" ]]; then
+		sudo -u "${user}" zsh "${USER_HOME}/bin/updateZinit"
+		sudo -u "${user}" "${USER_HOME}/bin/upgradePip"
 	fi
 	if hash tldr >/dev/null; then
 		sudo -u "${user}" /usr/bin/tldr --update \
 		| sed 's/ cache/ tldr cache/'
 	fi
-	updateVimPlugins
-	removeOrphans
-	clearPacCache
-	"${USER_HOME}"/bin/getInstalled.bash
+	update_vim_plugins
+	remove_orphans
+	clear_paccache
+	"${USER_HOME}/bin/getInstalled"
 	if [[ "$#" ]]; then
-		echo "${1}" >> "${USER_HOME}"/bin/.lastDate
-		printf -- '\nNext full update will run on or after %d.\n' "${2}"
+		echo "$1" >> "${USER_HOME}/bin/.lastDate"
+		printf -- '\nNext full update will run on or after %d.\n' "$2"
 	fi
 }
 
-updateVimPlugins () {
+update_vim_plugins() {
 	# set your vim plugin manager's commands here
 	printf -- '%s\n' "Updating vim plugins..."
-	sudo -u "${user}" vim +PlugUpdate && \
-	sudo -u "${user}" vim +PlugUpgrade && \
-	printf -- '%s\n' "Vim plugins updated."
+	sudo -u "${user}" vim +PlugUpdate \
+	&& sudo -u "${user}" vim +PlugUpgrade \
+	&& printf -- '%s\n' "Vim plugins updated."
 }
 
-removeOrphans () {
+remove_orphans() {
 	# remove orphaned pacman packages
 	if pacman -Qdtq >/dev/null; then
 		printf -- '%s\n' "Orphaned packages are:"
@@ -73,7 +75,8 @@ removeOrphans () {
 		read -rp "Remove orphan packages? [Y/n] " response
 		case "$response" in
 			y|Y)
-				pacman -Rns --noconfirm "$(pacman -Qdtq)"  ;;
+				pacman -Rns --noconfirm "$( pacman -Qdtq )"
+				;;
 			*)
 				printf -- '%s\n' "Leaving orphaned packages."
 		esac
@@ -82,94 +85,105 @@ removeOrphans () {
 	fi
 }
 
-clearPacCache () {
+clear_paccache() {
 	printf -- '%s\n' "Checking pacman cache for old packages..."
 	paccache -d
 	read -rp ":: Clear pacman cache? [Y/n] " response
 	case "$response" in
 		y|Y)
 			paccache -rv
-			printf -- '%s\n' "Pacman cache cleared."  ;;
+			printf -- '%s\n' "Pacman cache cleared."
+			;;
 		*)
 			printf -- '%s\n' "Skipping pacman cache."
 		esac
 }
 
-checkLastDate() {
-	# check if it's time to run updateExtras
-	if [[ ! "${pathToLastDate}" ]]; then
+check_last_date() {
+	# check if it's time to run update_extras
+	if [[ -z "${pathToLastDate}" ]]; then
 		# if the user doesn't want to make lastDate file
 		read -rp "Update other programs? " response
 		case "$response" in
 			y|Y)
-				updateExtras  ;;
+				update_extras
+				;;
 			*)
 				printf -- '%s\n' "Skipping extra updates."
 		esac
-	elif [[ "${pathToLastDate}" ]] && [[ ! -s "${pathToLastDate}" ]]; then
+	elif [[ -n "${pathToLastDate}" ]] && [[ ! -s "${pathToLastDate}" ]]; then
 		# if variable is set but file doesn't exist, create it
 		echo '000000' > "${pathToLastDate}"
 	elif [[ -s "${pathToLastDate}" ]]; then
 		# check date to see if it's been a week since the last update
-		lastDate=$( tail -n1 "${pathToLastDate}" )
-		currentDate=$( date "+%Y%m%d" )
-		currentDateLast=$( echo "${currentDate}" | cut -c7- )
+		lastDate="$( tail -n1 "${pathToLastDate}" )"
+		currentDate="$( date "+%Y%m%d" )"
+		currentDateLast="${currentDate:6}"
 		# if (( currentDateLast >= 26 )); then
-		#	 nextDate=$( checkMonth )
+		#	 nextDate=$( check_month )
 		# else
 		#	 nextDate=$(( lastDate + 7 ))
 		# fi
 		nextDate=$(( lastDate + 7 ))
-		if [[ "${currentDate}" -ge "${nextDate}" ]]; then
-			updateExtras "${currentDate}" "${nextDate}"
+		if (( currentDate >= nextDate )); then
+			update_extras "${currentDate}" "${nextDate}"
 		fi
 	fi
 }
 
 # TODO s(he's) br(ok)en
-checkMonth () {
+check_month() {
 	# check the month and fix any incorrectly formatted dates
-	currentMonth=$( echo "${currentDate}" | cut -c5-6 )
-	newYear=$( echo "${currentDate}" | cut -c1-4 )
-	newMonth="$(( currentMonth + 1 ))"
+	currentMonth="${currentDate:4:2}"
+	newYear="${currentDate:0:4}"
+	newMonth=$(( currentMonth + 1 ))
 	if (( newMonth > 12 )); then
 		newMonth=1
 		newYear=$(( newYear + 1 ))
 	fi
+	declare -a days_thirtyone
 	days_thirtyone=(01 03 05 07 08 10 12)
 	if [[ "${currentMonth}" =~ ${days_thirtyone[*]} ]]; then
-		difference="$(( 7 - (31 - currentDateLast) ))"
+		difference=$(( 7 - ( 31 - currentDateLast ) ))
 	else
-		difference="$(( 7 - (30 - currentDateLast) ))"
+		difference=$(( 7 - ( 30 - currentDateLast ) ))
 	fi
 	if [[ "${#difference}" -eq 1 ]]; then
-		difference="0${difference}"
+		difference=0${difference}
 	fi
 	newDate="${newYear}${newMonth}${difference}"
 	echo "${newDate}"
 }
 
-checkRoot() {
+check_root() {
 	# exit program if not run as root
 	set -o pipefail
-	if [[ "$( id -u )" -ne 0 ]]; then
+	if (( "$( id -u )" != 0 )); then
 		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
 		exit 1
 	fi
 }
 
-printPacdiff () {
+print_pacdiff() {
 	# print out any pacnew files
-	if [[ "${PACDIFF_RUN}" -eq 0 && -s /tmp/pacnew.out ]]; then
+	if (( PACDIFF_RUN == 0 )) && [[ -s "/tmp/pacnew.out" ]]; then
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
 		PACDIFF_RUN=1
 	fi
 }
 
 
+main() {
+	check_root
+	update_system
+	check_last_date
+	print_pacdiff
+	exit 0
+}
+
 if getent passwd "jam" > /dev/null; then
-	user=jam
-	pathToLastDate="${USER_HOME}"/bin/.lastDate
+	user="jam"
+	pathToLastDate="${USER_HOME}/bin/.lastDate"
 else
 	# if this is unset, the program will ask if you'd like to update extras every time it's run
 	# change the user you're updating for here
@@ -179,9 +193,4 @@ else
 	pathToLastDate=""
 fi
 
-checkRoot
-updateSystem
-checkLastDate
-printPacdiff
-
-exit 0
+main

@@ -8,8 +8,8 @@
 # if you don't know it, run `xrandr | grep 'connected | grep -v 'dis'`
 extConnected=false
 extMonitor=HDMI-0
-extStatus=$( xrandr | awk "/$extMonitor/"'{print $2}' )
-backlight=$( xbacklight )
+extStatus="$( xrandr | awk "/$extMonitor/"'{print $2}' )"
+backlight="$( xbacklight )"
 
 if [[ "${extStatus}" == connected ]]; then
 	extBright=$( xrandr --verbose \
@@ -18,9 +18,9 @@ if [[ "${extStatus}" == connected ]]; then
 	extConnected=true
 fi
 
-lower () {
+lower() {
 	# lower brightness of laptop brightness and ext monitor
-	if [[ "${extConnected}" ]]; then
+	if [[ -n "${extConnected}" ]]; then
 		if (( extBright > 0.2 )); then
 			xrandr --output "${extMonitor}" --brightness "$(( extBright - 0.05 ))"
 		fi
@@ -31,9 +31,9 @@ lower () {
 	return
 }
 
-raise () {
+raise() {
 	# raise brightness of laptop and ext monitor
-	if [[ "${extConnected}" ]]; then
+	if [[ -n "${extConnected}" ]]; then
 		if (( extBright <= 1.0 )); then
 			xrandr --output "${extMonitor}" --brightness "$(( extBright + 0.05 ))"
 		fi
@@ -44,34 +44,38 @@ raise () {
 	return
 }
 
-minMax () {
-	# set monitors to lowest or highest brightnesses
-	if [[ "$1" == min ]]; then
-		if [[ "${extConnected}" ]]; then
-			xrandr --output "${extMonitor}" --brightness '0.2'
-		fi
-		xbacklight -set 20
-	elif [[ "$1" == max ]]; then
-		if [[ "${extConnected}" ]]; then
-			xrandr --output "${extMonitor}" --brightness '1.0'
-		fi
-		xbacklight -set 100
+min() {
+	# set monitors to lowest brightness
+	if [[ -n "${extConnected}" ]]; then
+		xrandr --output "${extMonitor}" --brightness 0.2
 	fi
-	return
+	xbacklight -set 20
 }
 
-main () {
+max() {
+	# set monitors to highest brightness
+	if [[ -n "${extConnected}" ]]; then
+		xrandr --output "${extMonitor}" --brightness 1.0
+	fi
+	xbacklight -set 100
+}
+
+main() {
 	case "$1" in
 		--lower)
-			lower  ;;
+			lower
+			;;
 		--raise)
-			raise  ;;
+			raise
+			;;
 		--min)
-			minMax min  ;;
+			min
+			;;
 		--max)
-		minMax max  ;;
+			max
+		;;
 	esac
+	exit 0
 }
 
 main "$@"
-exit 0
