@@ -7,7 +7,7 @@ launch_picom () {
 }
 
 WALLPAPERS="${HOME}/documents/pictures/wallpapers"
-CONNECTED="$( xrandr | awk '/HDMI-0/ {print $2}' | cut -d' ' -f2)" # TODO condense cut to awk
+CONNECTED="$( xrandr | awk '/HDMI-0/ {print $2}' )"
 
 if [[ "${CONNECTED}" == connected ]]; then
     xrandr --output HDMI-0 --auto --left-of DP-0

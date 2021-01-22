@@ -40,10 +40,10 @@ update_extras() {
 	if [[ -z "${user}" ]]; then
 		return 1
 	fi
-	if [[ -s "${USER_HOME}/bin/updateZinit" ]] \
-	&& [[ -s "${USER_HOME}/bin/upgradePip" ]]; then
-		sudo -u "${user}" zsh "${USER_HOME}/bin/updateZinit"
-		sudo -u "${user}" "${USER_HOME}/bin/upgradePip"
+	if [[ -s "${USER_HOME}/bin/upgrade_zinit" ]] \
+	&& [[ -s "${USER_HOME}/bin/upgrade_pip" ]]; then
+		sudo -u "${user}" zsh "${USER_HOME}/bin/upgrade_zinit"
+		sudo -u "${user}" "${USER_HOME}/bin/upgrade_pip"
 	fi
 	if hash tldr >/dev/null; then
 		sudo -u "${user}" /usr/bin/tldr --update \
@@ -52,7 +52,7 @@ update_extras() {
 	update_vim_plugins
 	remove_orphans
 	clear_paccache
-	"${USER_HOME}/bin/getInstalled"
+	"${USER_HOME}/bin/get_installed"
 	if [[ "$#" ]]; then
 		echo "$1" >> "${USER_HOME}/bin/.lastDate"
 		printf -- '\nNext full update will run on or after %d.\n' "$2"

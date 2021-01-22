@@ -3,7 +3,7 @@
 
 set -e
 USER_HOME="$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )"
-user="$( echo "${USER_HOME}" | cut -d'/' -f3 )" # TODO use parameter expansions
+user="${USER_HOME:6}"
 basedir="${USER_HOME}/documents/misc/installed"
 currentDate="$( date "+%Y%m%d" )"
 newDir="${basedir}/${currentDate}"
@@ -48,6 +48,7 @@ case "$1" in
 			OPTIONS
 			  -g, --git    Use git for storing history
 		EOF
+		exit 0
 		;;
 	*)
 		get_installed
