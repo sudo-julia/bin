@@ -41,7 +41,7 @@ check_disk() {
 check_root() {
 	# exit if user is not root
 	if (( "$( id -u )" != 0 )); then
-		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling operation."
+		print_errors "Run as root." "Cancelling operation."
 		exit 1
 	fi
 }
@@ -94,10 +94,16 @@ syncDirs() {
 }
 
 
+print_errors() {
+	tput setaf 1
+	printf -- '[ERR] %s\n' "$*" >&2
+	tput sgr0
+}
+
 unmount_close() {
 	# unmount the external drive and close the LUKS container
 	if (( $# == 1 )); then
-		printf -- '%s\n' "Error: ${1}!"
+		print_errors "Error: $1!"
 		read -rp "Unmount and close disk? [Y/n] " closeDisk
 		case "$closeDisk" in
 			y|Y)
@@ -118,7 +124,7 @@ main() {
 	check_disk
 	sync_main
 	unmount_close
-	exit 0
 }
 
 main "$@"
+exit 0

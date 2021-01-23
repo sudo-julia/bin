@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# preview a temporary pdf, removing the file after viewing
+
+preview() {
+	# make a temporary file, view it and remove it once viewed
+	tmpfile="$( mktemp --suffix='.pdf' )"
+	pandoc "$1" -o "${tmpfile}"
+	zathura -- "${tmpfile}" && rm -- "${tmpfile}"
+}
+
+print_error() {
+	tput setaf 1
+	printf -- '[ERR] %s\n' "$1" >&2
+	tput sgr0
+}
+
+if [[ "$#" ]]; then
+	while (( $# )); do
+		preview_file="$1"
+		if [[ -s "${preview_file}" ]]; then
+			preview "${preview_file}"
+		else
+			print_error "Cannot access file '${preview_file}'"
+		fi
+		shift
+	done
+else
+	preview_file="$( find "${HOME}" -type f | fzf +m )"
+	preview "${preview_file}"
+fi
+
+unset preview_file
+unset tmpfile
+
+exit 0

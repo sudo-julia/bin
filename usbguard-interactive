@@ -3,11 +3,16 @@
 
 checkRoot() {
 	if (( "$( id -u )" != 0 )) || ! hash usbguard 2> /dev/null; then
-		printf -- '%s\n' "Error! Make sure 'usbguard' is installed and run as root."
-		exit 1
+		print_error "Make sure 'usbguard' is installed and run as root."
 	fi
 }
 
+print_error() {
+	tput setaf 1
+	printf -- '[ERR] %s\n' "$1" >&2
+	tput sgr0
+	exit 1
+}
 # TODO option to set rules instead of one-time actions
 main() {
 	checkRoot
@@ -27,11 +32,12 @@ main() {
 			operation="reject-device"
 			;;
 		*)
-			printf -- '%s\n' "Please select an option between: [a]llow [b]lock [r]eject"
-			exit 1
+			print_error "Please select an option between: [a]llow [b]lock [r]eject"
 	esac
 	usbguard "${operation}" "${device}"
-	exit 0
 }
 
 main
+unset device
+unset operation
+exit 0

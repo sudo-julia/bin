@@ -42,8 +42,8 @@ update_extras() {
 	fi
 	if [[ -s "${USER_HOME}/bin/upgrade_zinit" ]] \
 	&& [[ -s "${USER_HOME}/bin/upgrade_pip" ]]; then
-		sudo -u "${user}" zsh "${USER_HOME}/bin/upgrade_zinit"
-		sudo -u "${user}" "${USER_HOME}/bin/upgrade_pip"
+		sudo -u "${user}" zsh "${USER_HOME}/bin/upgrade-zinit"
+		sudo -u "${user}" "${USER_HOME}/bin/upgrade-pip"
 	fi
 	if hash tldr >/dev/null; then
 		sudo -u "${user}" /usr/bin/tldr --update \
@@ -52,7 +52,7 @@ update_extras() {
 	update_vim_plugins
 	remove_orphans
 	clear_paccache
-	"${USER_HOME}/bin/get_installed"
+	"${USER_HOME}/bin/get-installed"
 	if [[ "$#" ]]; then
 		echo "$1" >> "${USER_HOME}/bin/.lastDate"
 		printf -- '\nNext full update will run on or after %d.\n' "$2"
@@ -159,7 +159,9 @@ check_root() {
 	# exit program if not run as root
 	set -o pipefail
 	if (( "$( id -u )" != 0 )); then
-		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling."
+		tput setaf 1
+		printf -- '%s\n%s\n' "Error! Run as root." "Cancelling." >&2
+		tput sgr0
 		exit 1
 	fi
 }
@@ -178,7 +180,6 @@ main() {
 	update_system
 	check_last_date
 	print_pacdiff
-	exit 0
 }
 
 if getent passwd "jam" > /dev/null; then
@@ -194,3 +195,4 @@ else
 fi
 
 main
+exit 0

@@ -75,7 +75,7 @@ main() {
 			max
 		;;
 	esac
-	exit 0
 }
 
 main "$@"
+exit 0
