@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 # preview a temporary pdf, removing the file after viewing
+# TODO option to save rendered pdf(s)
 
 preview() {
 	# make a temporary file, view it and remove it once viewed
-	tmpfile="$( mktemp --suffix='.pdf' )"
-	pandoc "$1" -o "${tmpfile}"
-	zathura -- "${tmpfile}" && rm -- "${tmpfile}"
+	if [[ "$save_file" ]]; then
+		output_file="test"
+	else
+		output_file="$( mktemp --suffix='.pdf' )"
+	fi
+	pandoc "$1" -o "${output_file}"
+	zathura -- "${output_file}" && rm -- "${output_file}"
 }
 
 print_error() {
@@ -14,22 +19,55 @@ print_error() {
 	tput sgr0
 }
 
-if [[ "$#" ]]; then
-	while (( $# )); do
-		preview_file="$1"
-		if [[ -s "${preview_file}" ]]; then
-			preview "${preview_file}"
-		else
-			print_error "Cannot access file '${preview_file}'"
-		fi
-		shift
+main() {
+	# check for arguments and run preview() on every valid file given
+	if [[ "$#" ]]; then
+		while (( $# )); do
+			preview_file="$1"
+			if [[ -s "${preview_file}" ]]; then
+				preview "${preview_file}"
+			else
+				print_error "Cannot access file '${preview_file}'"
+			fi
+			shift
+		done
+	else
+		preview_file="$( find "${HOME}" -type f | fzf +m )"
+		preview "${preview_file}"
+	fi
+
+	unset preview_file
+	unset output_file
+}
+
+# TODO finish implementing getopt
+parse_args() {
+	TEMP="$( getopt --options :hs --longoptions help,save --name "$0" -- "$@" )"
+	eval set -- "$TEMP"
+	unset TEMP
+
+	while true; do
+		case "$1" in
+			-h|--help)
+				printf -- '%s\n' "Help"
+				exit 1
+				;;
+			-s|--save)
+				save_file="ON"
+				printf -- '%s\n' "$save_file"
+				unset save_file
+				exit 2
+				;;
+			'--')
+				shift
+				break
+				;;
+			*)
+				printf -- '%s\n' "Other"
+		esac
 	done
-else
-	preview_file="$( find "${HOME}" -type f | fzf +m )"
-	preview "${preview_file}"
-fi
+}
 
-unset preview_file
-unset tmpfile
-
+#parse_args "$@"
+main "$@"
 exit 0

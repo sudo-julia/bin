@@ -18,14 +18,10 @@ update_system() {
 			if [[ -z "${user}" ]]; then
 				exit 0
 			else
-				read -rp ":: Also update AUR packages? [Y/n] " response
-				case "$response" in
-					y|Y)
-						sudo -u "${user}" yay -Syua
-						;;
-					*)
-						printf -- '%s\n' "Skipping AUR packages"
-				esac
+				get_user_input \
+				":: Also update AUR packages? [Y/n] " \
+				"sudo -u ${user} yay -Syua"\
+				"Skipping AUR packages"
 			fi
 			;;
 		*)
@@ -72,14 +68,10 @@ remove_orphans() {
 	if pacman -Qdtq >/dev/null; then
 		printf -- '%s\n' "Orphaned packages are:"
 		pacman -Qdt
-		read -rp "Remove orphan packages? [Y/n] " response
-		case "$response" in
-			y|Y)
-				pacman -Rns --noconfirm "$( pacman -Qdtq )"
-				;;
-			*)
-				printf -- '%s\n' "Leaving orphaned packages."
-		esac
+		get_user_input \
+		":: Remove orphan packages? [Y/n] " \
+		"pacman -Rns --noconfirm $( pacman -Qdtq )" \
+		"Leaving orphaned packages."
 	else
 		printf -- '%s\n' "No orphaned packages."
 	fi
@@ -88,29 +80,20 @@ remove_orphans() {
 clear_paccache() {
 	printf -- '%s\n' "Checking pacman cache for old packages..."
 	paccache -d
-	read -rp ":: Clear pacman cache? [Y/n] " response
-	case "$response" in
-		y|Y)
-			paccache -rv
-			printf -- '%s\n' "Pacman cache cleared."
-			;;
-		*)
-			printf -- '%s\n' "Skipping pacman cache."
-		esac
+	get_user_input \
+	":: Clear pacman cache? [Y/n] " \
+	"paccache -rv && printf -- '%s\n' 'Pacman cache cleared.'" \
+	"Skipping pacman cache."
 }
 
 check_last_date() {
 	# check if it's time to run update_extras
 	if [[ -z "${pathToLastDate}" ]]; then
 		# if the user doesn't want to make lastDate file
-		read -rp "Update other programs? " response
-		case "$response" in
-			y|Y)
-				update_extras
-				;;
-			*)
-				printf -- '%s\n' "Skipping extra updates."
-		esac
+		get_user_input \
+		":: Update other programs? " \
+		"update_extras" \
+		"Skipping extra updates."
 	elif [[ -n "${pathToLastDate}" ]] && [[ ! -s "${pathToLastDate}" ]]; then
 		# if variable is set but file doesn't exist, create it
 		echo '000000' > "${pathToLastDate}"
@@ -164,6 +147,19 @@ check_root() {
 		tput sgr0
 		exit 1
 	fi
+}
+
+get_user_input() {
+	# get user confirmation for an action
+	# args are: 1 - prompt, 2 - action if yes, 3 - action if no
+	read -rp "$1" confirm
+	case "$confirm" in
+		y|Y)
+			$2
+			;;
+		*)
+			printf -- '%s\n' "$3"
+	esac
 }
 
 print_pacdiff() {
