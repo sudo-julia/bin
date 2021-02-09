@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# format and lint a python file
+
+format_file() {
+	printf -- '%s %s\n' "Running 'black' on" "$1"
+	black -- "$1"
+	printf -- '%s %s\n' "Running 'flake8' on" "$1"
+	flake8 -- "$1"
+	printf -- '%s %s\n' "Running 'pylint' on" "$1"
+	pylint "$1"
+	printf -- '%s %s\n' "Running 'mypy' on" "$1"
+	mypy -- "$1"
+}
+
+while (( $# )); do
+	format_file "$1"
+	shift
+done

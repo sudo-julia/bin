@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # back up /{etc,home,var} to a LUKS encrypted external drive
 
-# TODO add option for progress bar, no output and verbose (current)
+# TODO add options for progress bar, no output and verbose (current)
 # TODO make include and exclude patterns as variables
 # TODO allow these to be passed as arguments
 includeFile="/home/jam/bin/.rInclude"
@@ -126,5 +126,5 @@ main() {
 	unmount_close
 }
 
-main "$@"
-exit 0
+printf -- '%s\n' "BUSTED!!!!"
+exit 4

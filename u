@@ -57,16 +57,16 @@ update_extras() {
 
 update_vim_plugins() {
 	# set your vim plugin manager's commands here
-	printf -- '%s\n' "Updating vim plugins..."
-	sudo -u "${user}" vim +PlugUpdate \
-	&& sudo -u "${user}" vim +PlugUpgrade \
-	&& printf -- '%s\n' "Vim plugins updated."
+	printf -- '%s\n' "Updating NeoVim plugins..."
+	sudo -u "${user}" nvim +PlugUpdate \
+	&& sudo -u "${user}" nvim +PlugUpgrade \
+	&& printf -- '%s\n' "NeoVim plugins updated."
 }
 
 remove_orphans() {
 	# remove orphaned pacman packages
 	if pacman -Qdtq >/dev/null; then
-		printf -- '%s\n' "Orphaned packages are:"
+		printf -- '\n%s\n' "Orphaned packages are:"
 		pacman -Qdt
 		get_user_input \
 		":: Remove orphan packages? [Y/n] " \
@@ -191,4 +191,6 @@ else
 fi
 
 main
+unset PACDIFF_RUN
+unset USER_HOME
 exit 0
