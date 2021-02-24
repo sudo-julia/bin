@@ -22,11 +22,11 @@ fi
 # upgrade pip packages by listing and filtering outdated packages, then
 # feeding them to pip with xargs
 printf -- '%s\n' "Upgrading pip packages..."
-pip list -o \
+env pip list --user -o \
 	| grep -v '\^-e' \
 	| tee "${outputLoc} "\
 	| grep -Ev 'sdist|--|Latest\s' \
 	| cut -d' ' -f1 \
-	| xargs -r -n1 pip install --user -U \
-	&& printf -- '%s\n' "Pip packages upgraded."
-exit 0
+	| xargs -r -n1 env pip install --user -U \
+	&& printf -- '\n%s\n' "Pip packages upgraded."
+return 0

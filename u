@@ -4,11 +4,20 @@
 set -o pipefail
 
 # set this to paru or yay
-AUR_HELPER="yay"
-# counter for if pacdiff has been run yet (dont touch)
-PACDIFF_RUN=0
+aur_helper="yay"
+
+# if you want extra updates to run on a timer, add a file to this line
+last_date="${user_home}/bin/.lastDate"
+
+# counter for if pacdiff has been run yet
+pacdiff_run=0 # dont change this
+
+# get the current user to execute commands as
+user="${SUDO_USER}"
+
 # find the user's home dir for script locations
-USER_HOME="$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )"
+user_home="$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )"
+
 
 update_system() {
 	# run the main update
@@ -19,14 +28,10 @@ update_system() {
 		y|Y)
 			pacman -Syu
 			pacdiff -o > /tmp/pacnew.out
-			if [[ -z "${user}" ]]; then
-				exit 0
-			else
-				get_user_input \
-				":: Also update AUR packages? [Y/n] " \
-				"sudo -u ${user} "${AUR_HELPER}" -Syua"\
-				"Skipping AUR packages"
-			fi
+			get_user_input \
+			":: Also update AUR packages? [Y/n] " \
+			"sudo -u ${user} ${aur_helper} -Syua"\
+			"Skipping AUR packages"
 			;;
 		*)
 			printf -- '%s\n' "Cancelling update."
@@ -37,13 +42,10 @@ update_system() {
 update_extras() {
 	# update extra programs and non-arch package managers
 	# if you don't want to use any of these, simply delete or comment-out the line
-	if [[ -z "${user}" ]]; then
-		return 1
-	fi
-	if [[ -s "${USER_HOME}/bin/upgrade_zinit" ]] \
-	&& [[ -s "${USER_HOME}/bin/upgrade_pip" ]]; then
-		sudo -u "${user}" zsh "${USER_HOME}/bin/upgrade-zinit"
-		sudo -u "${user}" "${USER_HOME}/bin/upgrade-pip"
+	if [[ -s "${user_home}/bin/upgrade_zinit" ]] \
+	&& [[ -s "${user_home}/bin/upgrade_pip" ]]; then
+		sudo -u "${user}" zsh "${user_home}/bin/upgrade-zinit"
+		sudo -u "${user}" "${user_home}/bin/upgrade-pip"
 	fi
 	if hash tldr >/dev/null; then
 		sudo -u "${user}" /usr/bin/tldr --update \
@@ -52,9 +54,9 @@ update_extras() {
 	update_vim_plugins
 	remove_orphans
 	clear_paccache
-	"${USER_HOME}/bin/get-installed"
+	"${user_home}/bin/get-installed"
 	if [[ "$#" ]]; then
-		echo "$1" >> "${USER_HOME}/bin/.lastDate"
+		echo "$1" >> "${user_home}/bin/.lastDate"
 		printf -- '\nNext full update will run on or after %d.\n' "$2"
 	fi
 }
@@ -97,18 +99,18 @@ clear_paccache() {
 
 check_last_date() {
 	# check if it's time to run update_extras
-	if [[ -z "${pathToLastDate}" ]]; then
+	if [[ -z "${last_date}" ]]; then
 		# if the user doesn't want to make lastDate file
 		get_user_input \
 		":: Update other programs? " \
 		"update_extras" \
 		"Skipping extra updates."
-	elif [[ -n "${pathToLastDate}" ]] && [[ ! -s "${pathToLastDate}" ]]; then
+	elif [[ -n "${last_date}" ]] && [[ ! -s "${last_date}" ]]; then
 		# if variable is set but file doesn't exist, create it
-		echo '000000' > "${pathToLastDate}"
-	elif [[ -s "${pathToLastDate}" ]]; then
+		echo '000000' > "${last_date}"
+	elif [[ -s "${last_date}" ]]; then
 		# check date to see if it's been a week since the last update
-		lastDate="$( tail -n1 "${pathToLastDate}" )"
+		lastDate="$( tail -n1 "${last_date}" )"
 		currentDate="$( date "+%Y%m%d" )"
 		currentDateLast="${currentDate:6}"
 		# if (( currentDateLast >= 26 )); then
@@ -173,33 +175,27 @@ get_user_input() {
 
 print_pacdiff() {
 	# print out any pacnew files
-	if (( PACDIFF_RUN == 0 )) && [[ -s "/tmp/pacnew.out" ]]; then
+	if (( pacdiff_run == 0 )) && [[ -s "/tmp/pacnew.out" ]]; then
 		printf -- '\n%s\n%s\n' "Pacnew files:" "$( cat /tmp/pacnew.out )"
-		PACDIFF_RUN=1
+		pacdiff_run=1
 	fi
 }
-
 
 main() {
 	check_root
 	update_system
+	# update_extras
 	check_last_date
 	print_pacdiff
+
+	# unset all variables
+	unset aur_helper
+	unset last_date
+	unset pacdiff_run
+	unset user
+	unset user_home
 }
 
-if getent passwd "jam" > /dev/null; then
-	user="jam"
-	pathToLastDate="${USER_HOME}/bin/.lastDate"
-else
-	# if this is unset, the program will ask if you'd like to update extras every time it's run
-	# change the user you're updating for here
-	# user=$( echo "$USER_HOME" | cut -d'/' -f3 ) # you can also use this to get $user automatically
-	user=""
-	# if you want extra updates to run automatically, place the file to read them from here
-	pathToLastDate=""
-fi
-
 main
-unset PACDIFF_RUN
-unset USER_HOME
+
 exit 0
