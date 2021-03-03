@@ -11,7 +11,7 @@ else
 fi
 
 base_dir="${user_home}/documents/misc/installed"
-current_date="$( date "+%Y-%m-%d" )"
+current_date="$( date "+%Y%m%d" )"
 new_dir="${base_dir}/${current_date}"
 
 get_installed() {

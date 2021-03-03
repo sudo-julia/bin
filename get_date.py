@@ -1,4 +1,4 @@
-"""convert next date for 'u'"""
+"""get the date a week from the date given"""
 #!/usr/bin/env python3
 import datetime
 from sys import argv
