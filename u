@@ -7,7 +7,7 @@ set -o pipefail
 aur_helper="yay"
 
 # if you want extra updates to run on a timer, add a file to this line
-last_date="${user_home}/bin/.lastDate"
+last_date="${user_home}/bin/.last_date"
 
 # counter for if pacdiff has been run yet
 pacdiff_run=0 # dont change this
@@ -56,8 +56,8 @@ update_extras() {
 	clear_paccache
 	"${user_home}/bin/get-installed"
 	if [[ "$#" ]]; then
-		echo "$1" >> "${user_home}/bin/.lastDate"
-		printf -- '\nNext full update will run on or after %d.\n' "$2"
+		echo "$1" >> "${user_home}/bin/.last_date"
+		printf -- '\nNext full update will run on or after %s.\n' "$2"
 	fi
 }
 
@@ -107,46 +107,16 @@ check_last_date() {
 		"Skipping extra updates."
 	elif [[ -n "${last_date}" ]] && [[ ! -s "${last_date}" ]]; then
 		# if variable is set but file doesn't exist, create it
-		echo '000000' > "${last_date}"
+		echo '0000-00-00' > "${last_date}"
 	elif [[ -s "${last_date}" ]]; then
 		# check date to see if it's been a week since the last update
-		lastDate="$( tail -n1 "${last_date}" )"
-		currentDate="$( date "+%Y%m%d" )"
-		currentDateLast="${currentDate:6}"
-		# if (( currentDateLast >= 26 )); then
-		#	 nextDate=$( check_month )
-		# else
-		#	 nextDate=$(( lastDate + 7 ))
-		# fi
-		nextDate=$(( lastDate + 7 ))
-		if (( currentDate >= nextDate )); then
-			update_extras "${currentDate}" "${nextDate}"
+		last_date="$( tail -n1 "${last_date}" )"
+		current_date="$( date "+%Y-%m-%d" )"
+		next_date="$( ./get_date.py "${last_date}")"
+		if (( current_date >= next_date )); then
+			update_extras "${current_date}" "${next_date}"
 		fi
 	fi
-}
-
-# TODO s(he's) br(ok)en
-check_month() {
-	# check the month and fix any incorrectly formatted dates
-	currentMonth="${currentDate:4:2}"
-	newYear="${currentDate:0:4}"
-	newMonth=$(( currentMonth + 1 ))
-	if (( newMonth > 12 )); then
-		newMonth=1
-		newYear=$(( newYear + 1 ))
-	fi
-	declare -a days_thirtyone
-	days_thirtyone=(01 03 05 07 08 10 12)
-	if [[ "${currentMonth}" =~ ${days_thirtyone[*]} ]]; then
-		difference=$(( 7 - ( 31 - currentDateLast ) ))
-	else
-		difference=$(( 7 - ( 30 - currentDateLast ) ))
-	fi
-	if [[ "${#difference}" -eq 1 ]]; then
-		difference=0${difference}
-	fi
-	newDate="${newYear}${newMonth}${difference}"
-	echo "${newDate}"
 }
 
 check_root() {

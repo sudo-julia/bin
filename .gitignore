@@ -1,4 +1,4 @@
-.lastDate
+.last_date
 .rExclude
 .rInclude
 archives/
@@ -6,6 +6,5 @@ chromedriver
 extras/
 geckodriver
 git-prompt.sh
-mkbak.py
 screenshot.sh
 updateZinit.zsh
