@@ -1,4 +1,3 @@
-"""get the date a week from the date given"""
 #!/usr/bin/env python3
 import datetime
 from sys import argv
@@ -14,4 +13,9 @@ def get_new_date(date: str):
 
 
 if __name__ == "__main__":
-    get_new_date(argv[1])
+    try:
+        get_new_date(argv[1])
+    except IndexError:
+        print("No argument given. Please provide a date (ISO 8601)")
+    except ValueError:
+        print(f"'{argv[1]}' is not a valid argument. Please provide a date in ISO 8601")

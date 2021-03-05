@@ -6,9 +6,6 @@ set -o pipefail
 # set this to paru or yay
 aur_helper="yay"
 
-# if you want extra updates to run on a timer, add a file to this line
-last_date="${user_home}/bin/.last_date"
-
 # counter for if pacdiff has been run yet
 pacdiff_run=0 # dont change this
 
@@ -18,6 +15,8 @@ user="${SUDO_USER}"
 # find the user's home dir for script locations
 user_home="$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )"
 
+# if you want extra updates to run on a timer, add a file to this line
+last_date="${user_home}/bin/.last_date"
 
 update_system() {
 	# run the main update
@@ -112,8 +111,8 @@ check_last_date() {
 		# check date to see if it's been a week since the last update
 		last_date="$( tail -n1 "${last_date}" )"
 		current_date="$( date "+%Y-%m-%d" )"
-		next_date="$( ./get_date.py "${last_date}")"
-		if (( current_date >= next_date )); then
+		next_date="$( env python3 "${user_home}/bin/week_from.py" "${last_date}")"
+		if (( "${current_date//-/}" >= "${next_date//-/}" )); then
 			update_extras "${current_date}" "${next_date}"
 		fi
 	fi

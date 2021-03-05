@@ -40,7 +40,6 @@ get_installed() {
 	printf -- '%s %s\n' "Installed programs backed up to" "${new_dir}"
 }
 
-# TODO option to set output dir
 case "$1" in
 	-g|--git)
 		with_git="ON"

@@ -51,13 +51,14 @@ sync_main() {
 	# sync user's "/home" and then "/var" and "/etc"
 	# if you want to add another dir, just provide it as an arg to syncDirs
 	# TODO make verbosity an option
-	if ! rsync -maucP \
+	if ! rsync -mapuc \
 	--exclude-from="${excludeFile}" \
 	--include-from="${includeFile}" \
 	--delay-updates \
 	--delete-delay \
 	--delete-excluded  \
 	--ignore-existing \
+	--info=progress2 \
 	--log-file="${logLocation}" \
 	"${USER_HOME}" "${mountPoint}"; \
 	then
@@ -80,12 +81,13 @@ sync_main() {
 syncDirs() {
 	# run through all given directories to copy them, ignoring temp files
 	while (( "$#" )); do
-		rsync -mapPy \
+		rsync -mapy \
 		--exclude={'*.cache','*cache/','*.tmp','*tmp/'} \
 		--delay-updates \
 		--delete-delay \
 		--delete-excluded \
 		--ignore-existing \
+		--info=progress2 \
 		--log-file="${logLocation}" \
 		"$1" "${mountPoint}"
 		shift
