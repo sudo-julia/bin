@@ -111,7 +111,7 @@ check_last_date() {
 		# check date to see if it's been a week since the last update
 		last_date="$( tail -n1 "${last_date}" )"
 		current_date="$( date "+%Y-%m-%d" )"
-		next_date="$( env python3 "${user_home}/bin/week_from.py" "${last_date}")"
+		next_date="$( env python3 "${user_home}/bin/week_from.py" "${current_date}")"
 		if (( "${current_date//-/}" >= "${next_date//-/}" )); then
 			update_extras "${current_date}" "${next_date}"
 		fi
