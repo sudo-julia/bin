@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # list and offer to remove all broken symlinks recursing from your current dir
 # TODO checks to exclude useful broken symlinks
 

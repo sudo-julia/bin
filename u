@@ -55,7 +55,7 @@ update_extras() {
 	clear_paccache
 	"${user_home}/bin/get-installed"
 	if [[ "$#" ]]; then
-		echo "$1" >> "${user_home}/bin/.last_date"
+		echo "$1" > "${user_home}/bin/.last_date"
 		printf -- '\nNext full update will run on or after %s.\n' "$2"
 	fi
 }
@@ -153,16 +153,8 @@ print_pacdiff() {
 main() {
 	check_root
 	update_system
-	# update_extras
 	check_last_date
 	print_pacdiff
-
-	# unset all variables
-	unset aur_helper
-	unset last_date
-	unset pacdiff_run
-	unset user
-	unset user_home
 }
 
 main

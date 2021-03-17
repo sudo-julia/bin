@@ -4,6 +4,10 @@
 
 preview() {
 	# make a temporary file, view it and remove it once viewed
+	if [[ "${1:(-3)}" == pdf ]]; then
+		zathura -- "$1"
+		return
+	fi
 	if [[ "$save_file" ]]; then
 		output_file="test"
 	else
