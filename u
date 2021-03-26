@@ -22,20 +22,12 @@ update_system() {
 	# run the main update
 	set -e
 	informant check
-	read -rp ":: Begin main update? [Y/n] " response
-	case "$response" in
-		y|Y)
-			pacman -Syu
-			pacdiff -o > /tmp/pacnew.out
-			get_user_input \
-			":: Also update AUR packages? [Y/n] " \
-			"sudo -u ${user} ${aur_helper} -Syua"\
-			"Skipping AUR packages"
-			;;
-		*)
-			printf -- '%s\n' "Cancelling update."
-			exit 0
-	esac
+		pacman -Syu
+		pacdiff -o > /tmp/pacnew.out
+		get_user_input \
+		":: Also update AUR packages? [Y/n] " \
+		"sudo -u ${user} ${aur_helper} -Syua" \
+		"Skipping AUR packages"
 }
 
 update_extras() {
@@ -63,8 +55,9 @@ update_extras() {
 update_vim_plugins() {
 	# set your vim plugin manager's commands here
 	printf -- '%s\n' "Updating NeoVim plugins..."
-	sudo -u "${user}" nvim +PlugUpdate \
-	&& sudo -u "${user}" nvim +PlugUpgrade \
+	sudo -u "${user}" nvim -c 'PlugUpdate|q' \
+	&& sudo -u "${user}" nvim -c 'PlugUpgrade|q' \
+	&& sudo -u "${user}" nvim -c 'CocUpdateSync|q' \
 	&& printf -- '%s\n' "NeoVim plugins updated."
 }
 
@@ -109,9 +102,12 @@ check_last_date() {
 		echo '0000-00-00' > "${last_date}"
 	elif [[ -s "${last_date}" ]]; then
 		# check date to see if it's been a week since the last update
-		last_date="$( tail -n1 "${last_date}" )"
+		last_date="$( cat "${last_date}" )"
+		echo $last_date
 		current_date="$( date "+%Y-%m-%d" )"
-		next_date="$( env python3 "${user_home}/bin/week_from.py" "${current_date}")"
+		echo $current_date
+		next_date="$( env python3 "${user_home}/bin/week_from.py" "${last_date}")"
+		echo $next_date
 		if (( "${current_date//-/}" >= "${next_date//-/}" )); then
 			update_extras "${current_date}" "${next_date}"
 		fi
