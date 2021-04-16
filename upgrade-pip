@@ -15,12 +15,13 @@ if (( "$( id -u )" == 0 )); then
 fi
 
 # checks if output folder exists by removing the filename with substring extraction
-if [[ ! -d "${outputLoc:0:(-20)}" ]]; then
-	mkdir "${outputLoc:0:(-20)}"
+if [[ ! -d "${outputLoc:0: -20}" ]]; then
+	mkdir "${outputLoc:0: -20}"
 fi
 
 # upgrade pip packages by listing and filtering outdated packages, then
 # feeding them to pip with xargs
+printf -- 'SWITCH TO VENV DUMBASS\n'
 printf -- '%s\n' "Upgrading pip packages..."
 env pip list --user -o \
 	| grep -v '\^-e' \

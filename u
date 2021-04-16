@@ -48,6 +48,7 @@ update_extras() {
 	"${user_home}/bin/get-installed"
 	if [[ "$#" ]]; then
 		echo "$1" > "${user_home}/bin/.last_date"
+		# TODO wrong next date
 		printf -- '\nNext full update will run on or after %s.\n' "$2"
 	fi
 }
@@ -55,9 +56,8 @@ update_extras() {
 update_vim_plugins() {
 	# set your vim plugin manager's commands here
 	printf -- '%s\n' "Updating NeoVim plugins..."
-	sudo -u "${user}" nvim -c 'PlugUpdate|q' \
-	&& sudo -u "${user}" nvim -c 'PlugUpgrade|q' \
-	&& sudo -u "${user}" nvim -c 'CocUpdateSync|q' \
+	sudo -u "${user}" nvim '+PaqUpdate|q' \
+	&& sudo -u "${user}" nvim '+CocUpdateSync|q' \
 	&& printf -- '%s\n' "NeoVim plugins updated."
 }
 
@@ -103,11 +103,8 @@ check_last_date() {
 	elif [[ -s "${last_date}" ]]; then
 		# check date to see if it's been a week since the last update
 		last_date="$( cat "${last_date}" )"
-		echo $last_date
 		current_date="$( date "+%Y-%m-%d" )"
-		echo $current_date
 		next_date="$( env python3 "${user_home}/bin/week_from.py" "${last_date}")"
-		echo $next_date
 		if (( "${current_date//-/}" >= "${next_date//-/}" )); then
 			update_extras "${current_date}" "${next_date}"
 		fi

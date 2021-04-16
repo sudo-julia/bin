@@ -2,22 +2,25 @@
 # list and offer to remove all broken symlinks recursing from your current dir
 # TODO checks to exclude useful broken symlinks
 
+dir_excludes="\( -path ${HOME}/.mozilla -o -path ${HOME}/.local/share/Steam\)"
+
 remove_symlinks() {
 	# remove all broken symlinks
-	find . -xtype l -exec rm -v {} \;
+	find "${HOME}" -xtype l -exec rm -v {} \;
 }
 
 log_symlinks() {
 	# log broken symlinks to a tmpfile
-	output="$( mktemp --suffix '.txt' )"
-	find . -xtype l ! -exec test -e {} \; -print > "${output}" \
+    output="$( mktemp --suffix '.txt' )"
+	find "${HOME}" -xtype l ! -exec test -e {} \; -print > "${output}" \
 	&& printf -- '%s\n' "Symlinks output to ${output} for review."
 	printf -- '%s\n' "Exiting program without removing any symlinks."
 	exit 1
 }
 
 # find broken symlinks (won't work on OSX)
-find . -xtype l ! -exec test -e {} \; -print
+printf -- 'Broken symlinks in "%s":\n' "${HOME}"
+find "${HOME}" -xtype l ! -exec test -e {} \; -print
 printf -- '%s\n' "Remove broken symlinks? [Y/n] "; read -r remove
 case "$remove" in
 	y|Y)

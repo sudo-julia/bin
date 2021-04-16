@@ -11,7 +11,7 @@ cryptDevice="external"
 externalDrive="/dev/sdc"
 mountPoint="/mnt"
 
-logLocation="/tmp/extBackup-$( date '+%s' ).log"
+logLocation="/tmp/ext-backup_$( date '+%s' ).log"
 USER_HOME="$( getent passwd "${SUDO_USER}" | cut -d':' -f6 )"
 
 check_disk() {

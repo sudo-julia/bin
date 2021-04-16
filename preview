@@ -72,6 +72,5 @@ parse_args() {
 	done
 }
 
-#parse_args "$@"
 main "$@"
 exit 0
