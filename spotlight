@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+files="$( fd -H . ~ | fzf --border=rounded --height=100% --prompt="open > " )"
+echo "$files" | xargs xdg-open & disown

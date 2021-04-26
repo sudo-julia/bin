@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
 # check if external display is plugged in, launch all utilities
 
-CONNECTED="$( xrandr | awk '/HDMI-0/ {print $2}' )"
-WALLPAPERS="${HOME}/documents/pictures/wallpapers"
+connected="$( xrandr | awk '/HDMI-0/ {print $2}' )"
+wallpapers="${HOME}/documents/pictures/wallpapers"
 
 launch_picom() {
-    killall -q picom
+  killall -q picom
+  while pgrep -u "${UID}" -x picom >/dev/null; do sleep 1; done
 	nohup picom --experimental-backends </dev/null >/dev/null 2>&1 &
 }
 
-if [[ "${CONNECTED}" == connected ]]; then
-    xrandr --output HDMI-0 --auto --left-of DP-0
-	feh --no-fehbg --bg-fill -- "${WALLPAPERS}/desktop01.png" "${WALLPAPERS}/desktop02.png"
-    launch_picom
-    "${HOME}/.config/polybar/scripts/launch.sh"
-elif [[ "${CONNECTED}" == disconnected ]]; then
-    xrandr --output HDMI-0 --off --auto
-    feh --no-fehbg --bg-fill -- "${WALLPAPERS}/desktop02.png"
-    launch_picom
-    "${HOME}/.config/polybar/scripts/launch.sh"
+# set up monitors and wallpapers
+if [[ "${connected}" == connected ]]; then
+  xrandr --output HDMI-0 --auto --above DP-0
+	feh --no-fehbg --bg-fill -- "${wallpapers}/desktop0.png" "${wallpapers}/desktop1.png"
+elif [[ "${connected}" == disconnected ]]; then
+  xrandr --output HDMI-0 --off --auto
+  feh --no-fehbg --bg-fill -- "${wallpapers}/desktop1.png"
 else
-    exit 1
+  exit 1
 fi
+
+# notifications
+nohup dunst -config "${XDG_CONFIG_HOME}/dunst/dunstrc" </dev/null >/dev/null 2>&1 &
+
+# bar
+"${XDG_CONFIG_HOME}/polybar/scripts/launch.sh"
+
+# compositor
+launch_picom
 
 exit 0

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# quick programs to run on startup
+
+# remove all nohup outputs that were leftover
+fd -H "nohup.out" -x rm '{}' &
+
+# remove duplicates from history file
+gawk -i inplace '!x[$0]++' "${HISTFILE}"
+
+# remap capslock
+pgrep '[x]cape' && killall -9 xcape; '{ hash xcape >/dev/null }' 2>&1 && xcape -e 'Control_L=Escape' -t 100 &
+
+# smoother cursors
+xset r rate 500 45
