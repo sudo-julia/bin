@@ -4,11 +4,32 @@
 # remove all nohup outputs that were leftover
 fd -H "nohup.out" -x rm '{}' &
 
+firefox &
+
 # remove duplicates from history file
 gawk -i inplace '!x[$0]++' "${HISTFILE}"
 
+keepassxc &
+
+notify-send "Welcome, Juli!"
+
+# enable numslock
+numlockx &
+
 # remap capslock
 pgrep '[x]cape' && killall -9 xcape; '{ hash xcape >/dev/null }' 2>&1 && xcape -e 'Control_L=Escape' -t 100 &
+
+# remove active tag from completed TODO items
+# the "/- \[ \]!" means "ignore lines starting with this pattern"
+sed -i '/- \[ \]/!s/<\!--a-->//' "${HOME}/lib/TODO.md"
+
+signal-desktop &
+
+# kill cursor
+unclutter 3 &
+
+# launch polybar
+"${XDG_CONFG_HOME}/polybar/scripts/launch.sh"
 
 # smoother cursors
 xset r rate 500 45

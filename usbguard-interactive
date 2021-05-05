@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # run usbguard interactively to avoid typing two commands lol
 
-checkRoot() {
+check_root() {
 	if (( "$( id -u )" != 0 )) || ! hash usbguard 2> /dev/null; then
-		print_error "Make sure 'usbguard' is installed and run as root."
+		print_error "Make sure 'usbguard' is installed and run this program as root."
 	fi
 }
 
@@ -13,9 +13,10 @@ print_error() {
 	tput sgr0
 	exit 1
 }
+
 # TODO option to set rules instead of one-time actions
 main() {
-	checkRoot
+	check_root
 	printf -- '%s\n\n' "USB Devices:"
 	usbguard list-devices
 	printf -- '\n'
@@ -38,6 +39,4 @@ main() {
 }
 
 main
-unset device
-unset operation
 exit 0

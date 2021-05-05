@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
 
-files="$( fd -H . ~ | fzf --border=rounded --height=100% --prompt="open > " )"
-echo "$files" | xargs xdg-open & disown
+xdg-open "$( fd -H . ~ | rofi -dmenu -location 0 -p "open" )"

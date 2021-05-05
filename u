@@ -48,7 +48,7 @@ update_extras() {
 	"${user_home}/bin/get-installed"
 	if [[ "$#" ]]; then
 		echo "$1" > "${user_home}/bin/.last_date"
-		printf -- '\nNext full update will run on or after %s.\n' "$2"
+		printf -- '\nNext full update will run after %s.\n' "$2"
 	fi
 }
 
@@ -81,7 +81,7 @@ clear_paccache() {
 	read -rp ":: Clear pacman cache? [Y/n] " confirm
 	case "$confirm" in
 		y|Y)
-			paccache -rv && printf -- '%s\n' "Pacman cache cleared."
+			paccache -rvk2 && printf -- '%s\n' "Pacman cache cleared."
 			;;
 		*)
 			printf -- '%s\n' "Skipping pacman cache."
