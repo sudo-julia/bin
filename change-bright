@@ -62,18 +62,20 @@ max() {
 
 main() {
 	case "$1" in
-		--lower)
+		lower)
 			lower
 			;;
-		--raise)
+		raise)
 			raise
 			;;
-		--min)
+		min)
 			min
 			;;
-		--max)
+		max)
 			max
 			;;
+        *)
+            echo "Takes options for: lower, raise, min, max"
 	esac
 }
 

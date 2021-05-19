@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Pacman INTeractive scripts
+# starting oneliners taken from the archwiki, this is just a wrapper
+
+pint_install() {
+    pacman -Slq | fzf -m --height=100% --preview='pacman -Si {1}' | xargs -ro sudo pacman -S
+}
+
+pint_uninstall() {
+    pacman -Qq | fzf -m --height=100% --preview 'pacman -Qi {1}' | xargs -ro sudo pacman -Rns
+}
+
+print_error() {
+    tput setaf 1
+    printf -- '[ERR] %s\n' "$*" >&2
+    tput sgr0
+    usage
+    exit 1
+}
+
+usage() {
+    cat << EOF
+Usage: pint <command> [<args>]
+
+Commands are:
+    -R  Remove installed packages
+    -S  Install packages
+EOF
+}
+
+if (( $# > 1 )); then
+    print_error "pint only takes one argument at a time"
+elif (( $# == 0 )); then
+    print_error "Please provide an argument"
+fi
+
+case "$1" in
+    -R|remove|Remove)
+        pint_remove
+        ;;
+    -S|install|Install)
+        pint_install
+        ;;
+    *)
+        print_error "No such command '$1'"
+esac

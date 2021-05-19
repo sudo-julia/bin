@@ -55,8 +55,7 @@ update_extras() {
 update_vim_plugins() {
 	# set your vim plugin manager's commands here
 	printf -- '%s\n' "Updating NeoVim plugins..."
-	sudo -u "${user}" nvim '+PaqUpdate' \
-	&& sudo -u "${user}" nvim '+CocUpdateSync|q' \
+	sudo -u "${user}" nvim '+PaqUpdate|q' \
 	&& printf -- '%s\n' "NeoVim plugins updated."
 }
 
