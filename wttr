@@ -1,7 +1,26 @@
 #!/usr/bin/env bash
 # The bulk of this code is taken from <wttr.in/:bash.function>
 # If you source this file, it will set WTTR_PARAMS as well as show weather.
-# shellcheck disable=I2086
+
+usage() {
+    cat << EOF
+Usage: wttr <location> [<range>]
+
+Locations can be:
+    City Name:     los+angeles
+    Location:      eiffel+tower
+    Airport Code:  jfk
+    Domain Name:   @stackoverflow.com
+    Area Code:     90210
+    Coordinates:   -78.46,106.79
+
+Ranges are:
+    0  Only current weather
+    1  Current weather + today's forecast
+    2  Current weather + today's forecast + tomorrow's forecast (default)
+EOF
+exit 0
+}
 
 # WTTR_PARAMS is space-separated URL parameters, many of which are single characters that can be
 # lumped together. For example, "F q m" behaves the same as "Fqm".
@@ -22,8 +41,7 @@ fi
 
 wttr() {
   if [[ "$1" == help ]]; then
-      curl "wttr.in/:help"
-      exit 0
+      usage
   fi
   local location="${1// /+}"
   command shift

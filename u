@@ -113,10 +113,10 @@ check_last_date() {
 		echo '0000-00-00' > "${last_date}"
 	elif [[ -s "${last_date}" ]]; then
 		# check date to see if it's been a week since the last update
-		last_date="$( cat "${last_date}" )"
-		current_date="$( date "+%Y-%m-%d" )"
-		next_date="$( env python3 "${user_home}/bin/week_from.py" "${last_date}")"
-		future_date="$( env python3 "${user_home}/bin/week_from.py" "${current_date}")"
+		local last_date="$( cat "${last_date}" )"
+		local current_date="$( date "+%Y-%m-%d" )"
+		local next_date="$( env python3 "${user_home}/bin/week_from.py" "${last_date}")"
+		local future_date="$( env python3 "${user_home}/bin/week_from.py" "${current_date}")"
 		if (( "${current_date//-/}" >= "${next_date//-/}" )); then
 			update_extras "${current_date}" "${future_date}"
 		fi
