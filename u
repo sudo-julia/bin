@@ -43,6 +43,7 @@ update_extras() {
 		| sed 's/ cache/ tldr cache/'
 	fi
 	update_vim_plugins
+    update_luarocks
 	remove_orphans
 	clear_paccache
 	"${user_home}/bin/get-installed"
@@ -52,10 +53,23 @@ update_extras() {
 	fi
 }
 
+update_luarocks() {
+    # update luarocks packages
+    if (( $( luarocks list --outdated | wc -l ) <= 4 )); then
+        printf -- 'No luarocks package to upgrade.\n'
+        return
+    fi
+    printf -- 'Updating luarocks packages...\n'
+    for pkg in $(luarocks list --outdated | tail -n+5 | sed '/^\s*$/d' | sed n\;g | sed
+        '/^\s*$/d'); do
+        luarocks install "$pkg"
+    done
+}
+
 update_vim_plugins() {
 	# set your vim plugin manager's commands here
 	printf -- '%s\n' "Updating NeoVim plugins..."
-	sudo -u "${user}" nvim '+PaqUpdate|q' \
+	sudo -u "${user}" nvim '+PaqUpdate' \
 	&& printf -- '%s\n' "NeoVim plugins updated."
 }
 
