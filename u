@@ -60,8 +60,7 @@ update_luarocks() {
         return
     fi
     printf -- 'Updating luarocks packages...\n'
-    for pkg in $(luarocks list --outdated | tail -n+5 | sed '/^\s*$/d' | sed n\;g | sed
-        '/^\s*$/d'); do
+    for pkg in $( luarocks list --outdated | tail -n+5 | sed '/^\s*$/d' | sed -n 'p;n' ); do
         luarocks install "$pkg"
     done
 }
