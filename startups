@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # quick programs to run on startup
 
-# remove all nohup outputs that were leftover
+# remove all leftover nohup outputs
 fd -H "nohup.out" -x rm '{}' &
 
 firefox &
