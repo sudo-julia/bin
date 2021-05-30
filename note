@@ -2,6 +2,7 @@
 # create or edit a note file
 
 # TODO default to creating year and month dirs, use current day as default note name
+editor="$EDITOR"
 ft="md"
 note_name="$( date -I )"
 note_dir="${HOME}/documents/personal/notes"
@@ -14,14 +15,22 @@ month_dir="${year_dir}/${current_month}"
 
 create_dir() {
     # TODO operate on "$1", which is note-dir (defaults to month dir)
-    if [[ ! -d "$month_dir" ]]; then
-        mkdir -p -- "$month_dir"
+    if [[ ! -d "$1" ]]; then
+        mkdir -p -- "$1"
     fi
 }
 
 create_note() {
-    create_dir "$1"
-    "$EDITOR" -- "${1}/${2}.${3}"
+    create_dir "$2"
+    "$1" -- "${2}/${3}.${4}"
+}
+
+print_error() {
+    tput setaf 1
+    printf -- '[ERR] %s\n' "$*" >&2
+    tput sgr0
+    usage
+    exit 1
 }
 
 usage() {
@@ -29,6 +38,7 @@ usage() {
 Usage: note [<args>]
 
 Arguments are:
+    -e, --editor    Chose the editor to use (default \$EDITOR)
     -h, --help      Display this help
     -l, --latex     Create the note as a .latex file
     -n, --name      Set the name of the note
@@ -40,14 +50,20 @@ EOF
 
 
 # handle arguments
-TEMP=$( getopt -o 'hlmn:t' -l 'help,latex,markdown,name:,note-dir:,text' -n 'note' -- "$@" )
+TEMP=$( getopt -o 'e:hlmn:t' -l 'editor:help,latex,markdown,name:,note-dir:,text' -n 'note' -- "$@" )
 eval set -- "$TEMP"
 unset TEMP
 
 while true; do
     case "$1" in
+        '-e'|'--editor')
+            editor="$2"
+            shift 2
+            continue
+            ;;
         '-h'|'--help')
             usage
+            exit 0
             ;;
         '-l'|'--latex')
             ft="latex"
@@ -79,10 +95,10 @@ while true; do
             break
             ;;
         *)
-            echo "$2 is not a recognized argument"
+            print_error "$2 is not a recognized argument"
             exit 1
             ;;
     esac
 done
 
-create_note  "$note_dir" "$note_name" "$ft"
+create_note  "$editor" "$note_dir" "$note_name" "$ft"
