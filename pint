@@ -36,7 +36,7 @@ fi
 
 case "$1" in
     -R|remove|Remove)
-        pint_remove
+        pint_uninstall
         ;;
     -S|install|Install)
         pint_install

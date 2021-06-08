@@ -63,6 +63,7 @@ update_luarocks() {
     for pkg in $( luarocks list --outdated | tail -n+5 | sed '/^\s*$/d' | sed -n 'p;n' ); do
         luarocks install "$pkg"
     done
+    printf -- 'Luarocks packages upgraded.\n'
 }
 
 update_vim_plugins() {
