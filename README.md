@@ -1,18 +1,18 @@
-# utilities from scratch
+# homemade utilities
 
-- [`change-bright`](https://github.com/sudo-julia/bin/blob/main/change-bright):
+- [`change-bright`](./change-bright):
 adjusts monitor brightness
 
-- [`check-display`](https://github.com/sudo-julia/bin/blob/main/check-display):
+- [`check-display`](./check-display):
 runs at xstart to organize monitors and other display-tangential programs
 
 - [`clean-symlinks`](./clean-symlinks):
 deletes broken symlinks
 
-- [`ext-backup`](https://github.com/sudo-julia/bin/blob/main/ext-backup):
+- [`ext-backup`](./ext-backup):
 backup script intended for mounting an ext4 external drive
 
-- [`get-installed`](https://github.com/sudo-julia/bin/blob/main/get-installed):
+- [`get-installed`](./get-installed):
 grabs all installed programs and saves them in a folder
 
 - [`note`](./note):
@@ -33,12 +33,12 @@ a searcher that will eventually mimic the spotlight search in OSX
 - [`startups`](./startups):
 programs that get run every time my computer starts
 
-- [`u`](https://github.com/sudo-julia/bin/blob/main/u):
+- [`u`](./u):
 updates packages (intended for pacman/yay)
   - requires [informant](https://github.com/bradford-smith94/informant),
 [pacman-contrib](https://git.archlinux.org/pacman-contrib.git/about) and [yay](https://github.com/Jguer/yay)
 
-- [`upgrade-pip`](https://github.com/sudo-julia/bin/blob/main/upgrade-pip):
+- [`upgrade-pip`](./upgrade-pip):
 updates outdated python packages with pip
 
 - [`upgrade-zinit`](./upgrade-zinit):
