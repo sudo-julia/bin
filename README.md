@@ -1,21 +1,57 @@
-# My scripts
+# utilities from scratch
 
-- [`changeBright`](https://github.com/sudo-julia/bin/blob/main/changeBright) adjusts the brightness of your laptop and one external monitor, depending on the argument given
+- [`change-bright`](https://github.com/sudo-julia/bin/blob/main/change-bright):
+adjusts monitor brightness
 
-- [`checkDisplay`](https://github.com/sudo-julia/bin/blob/main/checkDisplay) launches picom and polybar, and will use an external monitor if one is plugged in
+- [`check-display`](https://github.com/sudo-julia/bin/blob/main/check-display):
+runs at xstart to organize monitors and other display-tangential programs
 
-- [`extBackup`](https://github.com/sudo-julia/bin/blob/main/checkDisplay) is script to backup to a LUKS encrypted external drive
+- [`clean-symlinks`](./clean-symlinks):
+deletes broken symlinks
 
-- [`getInstalled`](https://github.com/sudo-julia/bin/blob/main/getInstalled) grabs all installed programs and backs them up to a folder
-  - also separates AUR/local packages into a separate file
+- [`ext-backup`](https://github.com/sudo-julia/bin/blob/main/ext-backup):
+backup script intended for mounting an ext4 external drive
 
-- `mkbak.py` finds files, pipes them through `fzf` with `iterfzf`, and allows you to select files to create backups of
-  - `mkbak.py` has been moved to its [own repository](https://github.com/sudo-julia/mkbak)
-  - requires [iterfzf](https://github.com/dahlia/iterfzf)
-    - if you want the height option, (it's pretty nice), use my [fork](https://github.com/sudo-julia/iterfzf)
-  - only runs with Python3.6 or higher
+- [`get-installed`](https://github.com/sudo-julia/bin/blob/main/get-installed):
+grabs all installed programs and saves them in a folder
 
-- [`u`](https://github.com/sudo-julia/bin/blob/main/u) is an updater script for Arch Linux
-  - requires [informant](https://github.com/bradford-smith94/informant), [pacman-contrib](https://git.archlinux.org/pacman-contrib.git/about) and [yay](https://github.com/Jguer/yay)
+- [`note`](./note):
+opens up a text note
 
-- [`updatePip`](https://github.com/sudo-julia/bin/blob/main/updatePip) updates outdated python packages with pip
+- [`pint`](./pint):
+interfaces with `yay` for interactive package management
+
+- [`pvw`](./pvw):
+preview files
+
+- [`pyformat`](./pyformat):
+format and lint a python file
+
+- [`spotlight`](./spotlight):
+a searcher that will eventually mimic the spotlight search in OSX
+
+- [`startups`](./startups):
+programs that get run every time my computer starts
+
+- [`u`](https://github.com/sudo-julia/bin/blob/main/u):
+updates packages (intended for pacman/yay)
+  - requires [informant](https://github.com/bradford-smith94/informant),
+[pacman-contrib](https://git.archlinux.org/pacman-contrib.git/about) and [yay](https://github.com/Jguer/yay)
+
+- [`upgrade-pip`](https://github.com/sudo-julia/bin/blob/main/upgrade-pip):
+updates outdated python packages with pip
+
+- [`upgrade-zinit`](./upgrade-zinit):
+upgrades zinit and any zsh plugins
+
+- [`usbguard-interactive`](./usbguard-interactive):
+interfaces with usbguard for interactive choices
+
+- [`volume`](./volume):
+change the volume and show adjusted levels via dunst
+
+- [`week_from.py`](./week_from.py):
+tells you the week from a given ISO 8601 date
+
+- [`wttr`](./wttr):
+gets the weather *(this one's from wttr.io, but i tweaked a few things)*
