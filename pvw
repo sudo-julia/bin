@@ -9,15 +9,15 @@ preview() {
 		zathura -- "$1"
 		return
 	fi
-    # if the keep flag is present, remove current file extension and replace with pdf
-	if [[ "${opts[*]}" == *"-k"* ]]; then
+
+    # set the output file based on if it'll be saved or not
+    if [[ "${preserve}" ]]; then
 		output_file="${1%.*}.pdf"
-        local preserve=true
 	else
 		output_file="$( mktemp --suffix='.pdf' )"
 	fi
 
-    # generate and open the file, exit on failure
+    # convert and open the file, exit on failure
 	pandoc "$1" -o "${output_file}" 2>/dev/null || print_error "$1 does not exist!"
 	zathura -- "${output_file}" || print_error "Operation failed!"
     if [[ ! "$preserve" ]]; then
@@ -39,8 +39,13 @@ main() {
         fi
     done
 
-    local preview_file 
+    # if the keep flag is present, set a variable to give better output filenames
+	if [[ "${opts[*]}" == *"-k"* ]]; then
+        preserve=true
+	fi
+
     # if the user provided files to operate on, iterate through them
+    local preview_file 
     if (( "${#args[@]}" > 0 )); then
 		for f in "${args[@]}"; do
 			if [[ -s "${f}" ]]; then
