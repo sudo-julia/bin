@@ -39,6 +39,8 @@ if [[ -z "$WTTR_PARAMS" ]]; then
   export WTTR_PARAMS
 fi
 
+# shellcheck disable=SC2086
+# $args cannot be quoted, or the in-term formatting will break
 wttr() {
   if [[ "$1" == help ]]; then
       usage
@@ -54,3 +56,4 @@ wttr() {
 }
 
 wttr "$@"
+exit 0
