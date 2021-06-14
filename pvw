@@ -2,7 +2,7 @@
 # preview a pdf
 # Copyright (c) 2021 Julia
 
-version="1.1.0"
+version="1.1.1"
 
 preview() {
 	# make a temporary file, view it and remove it once viewed
@@ -20,8 +20,8 @@ preview() {
 	fi
 
     # convert and open the file, exit on failure
-	pandoc "$1" -o "${outputFile}" 2>/dev/null || print_error "$1 does not exist!"
-	zathura -- "${outputFile}" || print_error "Operation failed!"
+	pandoc "$1" -o "${outputFile}" 2>/dev/null || printError "$1 does not exist!"
+	zathura -- "${outputFile}" || printError "Operation failed!"
     if [[ ! "$preserve" ]]; then
         rm -f -- "${outputFile}"
     fi
@@ -45,6 +45,8 @@ getFile() {
 }
 
 main() {
+    checkDeps
+
 	# check for arguments and run preview() on every valid file given
     parseArgs "$@"
 
@@ -82,7 +84,7 @@ main() {
 			if [[ -s "${f}" ]]; then
 				preview "${f}"
 			else
-				print_error "Cannot access file '${f}'"
+				printError "Cannot access file '${f}'"
 			fi
 			shift
 		done
@@ -93,7 +95,14 @@ main() {
 	fi
 }
 
-print_error() {
+checkDeps() {
+    # check dependencies
+    for com in pandoc wget; do
+        hash "$com" 2>/dev/null || printError "$com needs to be installed to run pvw."
+    done
+}
+
+printError() {
     # print errors to stderr
 	tput setaf 1
 	printf -- '[ERR] %s\n' "$1" >&2
@@ -149,7 +158,7 @@ parseArgs() {
 				break
 				;;
 			*)
-				print_error "$2 is not a recognized argument"
+				printError "$2 is not a recognized argument"
 		esac
 	done
 }
