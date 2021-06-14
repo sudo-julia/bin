@@ -2,7 +2,7 @@
 # preview a pdf
 # Copyright (c) 2021 Julia
 
-version="1.1.1"
+version="1.2.0"
 
 preview() {
 	# make a temporary file, view it and remove it once viewed
@@ -50,11 +50,11 @@ main() {
 	# check for arguments and run preview() on every valid file given
     parseArgs "$@"
 
-    # TODO (jam) option to preview from an html link
-    # TODO (jam) option to combine files into one pdf
+    # TODO (jam) option to combine files into one pdf (pandoc -s)
     # declare arrays for args and opts, sort provided arguments accordingly
     declare -a args opts
     for arg in "$@"; do
+        # FIXME (jam) is there a way to remove the link during the arg parsing?
         if [[ "${downloadFrom}" && "${arg}" == "${downloadFrom}" ]]; then
             # remove download link from args
             continue
@@ -66,19 +66,21 @@ main() {
         fi
     done
 
-    # if the keep flag is present, set a variable to give better output filenames
-	if [[ "${opts[*]}" == *"-k"* ]]; then
-        preserve=true
-	fi
-
     # if the link flag is present, download the file from the given link
     if [[ "${opts[*]}" == *"-l"* ]]; then
         pFile="$( getFile "$downloadFrom" )"
         args+=("$pFile")
     fi
 
+    # if edit flag is present, edit input files
+    if [[ "$edit" ]]; then
+        for f in "${args[@]}"; do
+            "$EDITOR" -- "$f"
+        done
+    fi
+
     # if the user provided files to operate on, iterate through them
-    local preview_file 
+    local previewFile 
     if (( "${#args[@]}" > 0 )); then
 		for f in "${args[@]}"; do
 			if [[ -s "${f}" ]]; then
@@ -90,14 +92,14 @@ main() {
 		done
     # otherwise, select files interactively
 	else
-		preview_file="$( find "." -type f | fzf +m )" || exit 0
-		preview "${preview_file}"
+		previewFile="$( find "." -type f | fzf +m )" || exit 0
+		preview "${previewFile}"
 	fi
 }
 
 checkDeps() {
     # check dependencies
-    for com in pandoc wget; do
+    for com in pandoc wget zathura; do
         hash "$com" 2>/dev/null || printError "$com needs to be installed to run pvw."
     done
 }
@@ -116,6 +118,7 @@ usage() {
 Usage: preview [<args>] [file]
 
 Arguments are:
+    -e, --edit     Edit input files before generating pdfs
     -h, --help     Display this help
     -k, --keep     Save the generated pdf
     -l, --link     Preview a file directly from a link
@@ -127,16 +130,22 @@ exit 0
 
 parseArgs() {
     # parse arguments
-	TEMP="$( getopt -o 'hkl:rv' -l 'help,keep,link:,readme,version' -n "pvw" -- "$@" )"
+	TEMP="$( getopt -o 'ehkl:rv' -l 'edit,help,keep,link:,readme,version' -n "pvw" -- "$@" )"
 	eval set -- "$TEMP"
 	unset TEMP
 
 	while true; do
 		case "$1" in
+            '-e'|'--edit')
+                edit=true
+                shift
+                continue
+                ;;
 			'-h'|'--help')
                 usage
 				;;
 			'-k'|'--keep')
+                preserve=true
                 shift
                 continue
 				;;
