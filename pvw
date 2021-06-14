@@ -2,9 +2,11 @@
 # preview a pdf
 # Copyright (c) 2021 Julia
 
+version="1.1.0"
+
 preview() {
 	# make a temporary file, view it and remove it once viewed
-    local output_file
+    local outputFile
 	if [[ "${1:(-3)}" == pdf ]]; then
 		zathura -- "$1"
 		return
@@ -12,26 +14,49 @@ preview() {
 
     # set the output file based on if it'll be saved or not
     if [[ "${preserve}" ]]; then
-		output_file="${1%.*}.pdf"
+		outputFile="${1%.*}.pdf"
 	else
-		output_file="$( mktemp --suffix='.pdf' )"
+		outputFile="$( mktemp --suffix='.pdf' )"
 	fi
 
     # convert and open the file, exit on failure
-	pandoc "$1" -o "${output_file}" 2>/dev/null || print_error "$1 does not exist!"
-	zathura -- "${output_file}" || print_error "Operation failed!"
+	pandoc "$1" -o "${outputFile}" 2>/dev/null || print_error "$1 does not exist!"
+	zathura -- "${outputFile}" || print_error "Operation failed!"
     if [[ ! "$preserve" ]]; then
-        rm -f -- "${output_file}"
+        rm -f -- "${outputFile}"
     fi
+}
+
+getFile() {
+    # download a file
+    local downloadedFile
+    if [[ "${preserve}" ]];  then
+        # trim the url name to the specific file, and replace any extension with html
+        # this exists to remove html anchors from the filename
+        local tmp="${1##*/}"
+        downloadedFile="${tmp%.*}.html"
+        unset tmp
+    else
+        downloadedFile="$( mktemp --suffix='.html' )"
+    fi
+
+    wget -q "$1" -O "${downloadedFile}"
+    echo "${downloadedFile}"
 }
 
 main() {
 	# check for arguments and run preview() on every valid file given
-    parse_args "$@"
+    parseArgs "$@"
 
+    # TODO (jam) option to preview from an html link
+    # TODO (jam) option to combine files into one pdf
     # declare arrays for args and opts, sort provided arguments accordingly
     declare -a args opts
     for arg in "$@"; do
+        if [[ "${downloadFrom}" && "${arg}" == "${downloadFrom}" ]]; then
+            # remove download link from args
+            continue
+        fi
         if [[ $arg == [-]* ]]; then
             opts+=("$arg")
         else
@@ -43,6 +68,12 @@ main() {
 	if [[ "${opts[*]}" == *"-k"* ]]; then
         preserve=true
 	fi
+
+    # if the link flag is present, download the file from the given link
+    if [[ "${opts[*]}" == *"-l"* ]]; then
+        pFile="$( getFile "$downloadFrom" )"
+        args+=("$pFile")
+    fi
 
     # if the user provided files to operate on, iterate through them
     local preview_file 
@@ -78,15 +109,16 @@ Usage: preview [<args>] [file]
 Arguments are:
     -h, --help     Display this help
     -k, --keep     Save the generated pdf
+    -l, --link     Preview a file directly from a link
     -r, --readme   Preview the README of the current directory
     -v, --version  Display version information
 EOF
 exit 0
 }
 
-parse_args() {
+parseArgs() {
     # parse arguments
-	TEMP="$( getopt -o 'hkrv' -l 'help,keep,readme,version' -n "pvw" -- "$@" )"
+	TEMP="$( getopt -o 'hkl:rv' -l 'help,keep,link:,readme,version' -n "pvw" -- "$@" )"
 	eval set -- "$TEMP"
 	unset TEMP
 
@@ -99,12 +131,17 @@ parse_args() {
                 shift
                 continue
 				;;
+            '-l'|'--link')
+                downloadFrom="$2"
+                shift 2
+                continue
+                ;;
             '-r'|'--readme')
                 preview "./README.md"
                 exit 0
                 ;;
             '-v'|'--version')
-                printf -- 'pvw v1\n'
+                printf -- 'pvw v%s\n' "$version"
                 exit 0
                 ;;
 			'--')

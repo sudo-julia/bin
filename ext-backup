@@ -49,7 +49,7 @@ check_root() {
 
 sync_main() {
 	# sync user's "/home" and then "/var" and "/etc"
-	# if you want to add another dir, just provide it as an arg to syncDirs
+	# if you want to add another dir, just provide it as an arg to sync_dirs
 	# TODO make verbosity an option
 	if ! rsync -mapuc \
 	--exclude-from="${excludeFile}" \
@@ -68,7 +68,7 @@ sync_main() {
 		printf -- '%s\n' "'/home' successfully synced"
 	fi
 
-	if ! syncDirs "/etc" "/var"; then
+	if ! sync_dirs "/etc" "/var"; then
 		unmount_close "Syncing '/etc' and/or '/var' failed"
 		exit 4
 	else
@@ -78,7 +78,7 @@ sync_main() {
 }
 
 
-syncDirs() {
+sync_dirs() {
 	# run through all given directories to copy them, ignoring temp files
 	while (( "$#" )); do
 		rsync -mapy \
