@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # preview a pdf
+# depends on: pandoc, wget (optional)
 # Copyright (c) 2021 Julia
 
 version="1.1.1"
@@ -8,7 +9,7 @@ preview() {
 	# make a temporary file, view it and remove it once viewed
     local outputFile
 	if [[ "${1:(-3)}" == pdf ]]; then
-		zathura -- "$1"
+		xdg-open "$1" &
 		return
 	fi
 
@@ -20,8 +21,8 @@ preview() {
 	fi
 
     # convert and open the file, exit on failure
-	pandoc "$1" -o "${outputFile}" 2>/dev/null || printError "$1 does not exist!"
-	zathura -- "${outputFile}" || printError "Operation failed!"
+	pandoc --quiet "$1" -o "${outputFile}" 2>/dev/null || printError "$1 does not exist!"
+    xdg-open "${outputFile}" # FIXME (jam) why won't this run in the background?
     if [[ ! "$preserve" ]]; then
         rm -f -- "${outputFile}"
     fi
@@ -30,7 +31,7 @@ preview() {
 getFile() {
     # download a file
     local downloadedFile
-    if [[ "${preserve}" ]];  then
+    if [[ "$preserve" ]];  then
         # trim the url name to the specific file, and replace any extension with html
         # this exists to remove html anchors from the filename
         local tmp="${1##*/}"
@@ -50,8 +51,10 @@ main() {
 	# check for arguments and run preview() on every valid file given
     parseArgs "$@"
 
-    # TODO (jam) option to preview from an html link
-    # TODO (jam) option to combine files into one pdf
+    # TODO (jam) option to combine files into one pdf (pandoc -s)
+    # TODO (jam) option to select pdf viewer
+    # TODO (jam) change the link arg to take every argument as a link (or detect?)
+
     # declare arrays for args and opts, sort provided arguments accordingly
     declare -a args opts
     for arg in "$@"; do
