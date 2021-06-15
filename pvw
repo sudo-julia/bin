@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # preview a pdf
-# depends on: pandoc, wget (optional)
+# depends on: pandoc, wget (optional), fzf (optional)
 # Copyright (c) 2021 Julia
 
-version="1.1.1"
+version="1.3.0"
 
 preview() {
 	# make a temporary file, view it and remove it once viewed
     local outputFile
+    readlink "$1" >/dev/null || printError "'$1' does not exist."
+
 	if [[ "${1:(-3)}" == pdf ]]; then
-		xdg-open "$1" &
+		$pdfViewer "$1" &
 		return
 	fi
 
@@ -21,11 +23,23 @@ preview() {
 	fi
 
     # convert and open the file, exit on failure
-	pandoc --quiet "$1" -o "${outputFile}" 2>/dev/null || printError "$1 does not exist!"
-    xdg-open "${outputFile}" # FIXME (jam) why won't this run in the background?
+	pandoc --quiet "$1" -o "${outputFile}" 2>/dev/null \
+     && $pdfViewer "${outputFile}" &
+
     if [[ ! "$preserve" ]]; then
         rm -f -- "${outputFile}"
     fi
+}
+
+detectUrl() {
+    # detect if input is a url, return a filename
+    regex="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)"
+    if grep -Ei "$regex" <<< "$1" >/dev/null; then
+        getFile "$1"
+    else
+        echo "$1"
+    fi
+
 }
 
 getFile() {
@@ -52,14 +66,12 @@ main() {
     parseArgs "$@"
 
     # TODO (jam) option to combine files into one pdf (pandoc -s)
-    # TODO (jam) option to select pdf viewer
-    # TODO (jam) change the link arg to take every argument as a link (or detect?)
 
     # declare arrays for args and opts, sort provided arguments accordingly
     declare -a args opts
     for arg in "$@"; do
-        if [[ "${downloadFrom}" && "${arg}" == "${downloadFrom}" ]]; then
-            # remove download link from args
+        # remove pdfViewer from args
+        if [[ "${pdfViewer}" && "${arg}" == "${pdfViewer}" ]]; then
             continue
         fi
         if [[ $arg == [-]* ]]; then
@@ -69,30 +81,19 @@ main() {
         fi
     done
 
-    # if the keep flag is present, set a variable to give better output filenames
-	if [[ "${opts[*]}" == *"-k"* ]]; then
-        preserve=true
-	fi
-
-    # if the link flag is present, download the file from the given link
-    if [[ "${opts[*]}" == *"-l"* ]]; then
-        pFile="$( getFile "$downloadFrom" )"
-        args+=("$pFile")
+    if [[ ! "${pdfViewer}" ]]; then
+        pdfViewer="xdg-open"
     fi
 
     # if the user provided files to operate on, iterate through them
-    local preview_file 
     if (( "${#args[@]}" > 0 )); then
 		for f in "${args[@]}"; do
-			if [[ -s "${f}" ]]; then
-				preview "${f}"
-			else
-				printError "Cannot access file '${f}'"
-			fi
+            preview "$( detectUrl "$f" )" || printError "Cannot access file '${f}'"
 			shift
 		done
     # otherwise, select files interactively
 	else
+        local preview_file 
 		preview_file="$( find "." -type f | fzf +m )" || exit 0
 		preview "${preview_file}"
 	fi
@@ -100,7 +101,7 @@ main() {
 
 checkDeps() {
     # check dependencies
-    for com in pandoc wget; do
+    for com in fzf pandoc wget; do
         hash "$com" 2>/dev/null || printError "$com needs to be installed to run pvw."
     done
 }
@@ -116,21 +117,24 @@ printError() {
 usage() {
     # usage
     cat << EOF
-Usage: preview [<args>] [file]
+Usage: preview [<args>] [file|url]
 
 Arguments are:
     -h, --help     Display this help
     -k, --keep     Save the generated pdf
-    -l, --link     Preview a file directly from a link
     -r, --readme   Preview the README of the current directory
-    -v, --version  Display version information
+    -v, --viewer   Choose the pdf viewer to use (default: xdg-open)
+    --version      Display version information
+
+Note:
+    If providing a URL, be sure to prefix it with 'http[s]'.
 EOF
 exit 0
 }
 
 parseArgs() {
     # parse arguments
-	TEMP="$( getopt -o 'hkl:rv' -l 'help,keep,link:,readme,version' -n "pvw" -- "$@" )"
+	TEMP="$( getopt -o 'hkrv:' -l 'help,keep,readme,version,viewer:' -n "pvw" -- "$@" )"
 	eval set -- "$TEMP"
 	unset TEMP
 
@@ -140,21 +144,22 @@ parseArgs() {
                 usage
 				;;
 			'-k'|'--keep')
+                preserve=true
                 shift
                 continue
 				;;
-            '-l'|'--link')
-                downloadFrom="$2"
-                shift 2
-                continue
-                ;;
             '-r'|'--readme')
                 preview "./README.md"
                 exit 0
                 ;;
-            '-v'|'--version')
+            '--version')
                 printf -- 'pvw v%s\n' "$version"
                 exit 0
+                ;;
+            '-v'|'--viewer')
+                pdfViewer="$2"
+                shift 2
+                continue
                 ;;
 			'--')
 				shift
