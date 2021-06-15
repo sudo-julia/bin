@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 # preview a pdf
+# depends on: pandoc, wget (optional), fzf (optional)
 # Copyright (c) 2021 Julia
 
-version="1.2.0"
+version="1.3.0"
 
 preview() {
 	# make a temporary file, view it and remove it once viewed
     local outputFile
+    readlink "$1" >/dev/null || printError "'$1' does not exist."
+
 	if [[ "${1:(-3)}" == pdf ]]; then
-		zathura -- "$1"
+		$pdfViewer "$1" &
 		return
 	fi
 
@@ -20,17 +23,29 @@ preview() {
 	fi
 
     # convert and open the file, exit on failure
-	pandoc "$1" -o "${outputFile}" 2>/dev/null || printError "$1 does not exist!"
-	zathura -- "${outputFile}" || printError "Operation failed!"
+	pandoc --quiet "$1" -o "${outputFile}" 2>/dev/null \
+     && $pdfViewer "${outputFile}" &
+
     if [[ ! "$preserve" ]]; then
         rm -f -- "${outputFile}"
     fi
 }
 
+detectUrl() {
+    # detect if input is a url, return a filename
+    regex="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)"
+    if grep -Ei "$regex" <<< "$1" >/dev/null; then
+        getFile "$1"
+    else
+        echo "$1"
+    fi
+
+}
+
 getFile() {
     # download a file
     local downloadedFile
-    if [[ "${preserve}" ]];  then
+    if [[ "$preserve" ]];  then
         # trim the url name to the specific file, and replace any extension with html
         # this exists to remove html anchors from the filename
         local tmp="${1##*/}"
@@ -54,9 +69,8 @@ main() {
     # declare arrays for args and opts, sort provided arguments accordingly
     declare -a args opts
     for arg in "$@"; do
-        # FIXME (jam) is there a way to remove the link during the arg parsing?
-        if [[ "${downloadFrom}" && "${arg}" == "${downloadFrom}" ]]; then
-            # remove download link from args
+        # remove pdfViewer from args
+        if [[ "${pdfViewer}" && "${arg}" == "${pdfViewer}" ]]; then
             continue
         fi
         if [[ $arg == [-]* ]]; then
@@ -66,10 +80,8 @@ main() {
         fi
     done
 
-    # if the link flag is present, download the file from the given link
-    if [[ "${opts[*]}" == *"-l"* ]]; then
-        pFile="$( getFile "$downloadFrom" )"
-        args+=("$pFile")
+    if [[ ! "${pdfViewer}" ]]; then
+        pdfViewer="xdg-open"
     fi
 
     # if edit flag is present, edit input files
@@ -80,26 +92,22 @@ main() {
     fi
 
     # if the user provided files to operate on, iterate through them
-    local previewFile 
     if (( "${#args[@]}" > 0 )); then
 		for f in "${args[@]}"; do
-			if [[ -s "${f}" ]]; then
-				preview "${f}"
-			else
-				printError "Cannot access file '${f}'"
-			fi
+            preview "$( detectUrl "$f" )" || printError "Cannot access file '${f}'"
 			shift
 		done
     # otherwise, select files interactively
 	else
-		previewFile="$( find "." -type f | fzf +m )" || exit 0
-		preview "${previewFile}"
+        local preview_file 
+		preview_file="$( find "." -type f | fzf +m )" || exit 0
+		preview "${preview_file}"
 	fi
 }
 
 checkDeps() {
     # check dependencies
-    for com in pandoc wget zathura; do
+    for com in fzf pandoc wget; do
         hash "$com" 2>/dev/null || printError "$com needs to be installed to run pvw."
     done
 }
@@ -115,22 +123,25 @@ printError() {
 usage() {
     # usage
     cat << EOF
-Usage: preview [<args>] [file]
+Usage: preview [<args>] [file|url]
 
 Arguments are:
     -e, --edit     Edit input files before generating pdfs
     -h, --help     Display this help
     -k, --keep     Save the generated pdf
-    -l, --link     Preview a file directly from a link
     -r, --readme   Preview the README of the current directory
-    -v, --version  Display version information
+    -v, --viewer   Choose the pdf viewer to use (default: xdg-open)
+    --version      Display version information
+
+Note:
+    If providing a URL, be sure to prefix it with 'http[s]'.
 EOF
 exit 0
 }
 
 parseArgs() {
     # parse arguments
-	TEMP="$( getopt -o 'ehkl:rv' -l 'edit,help,keep,link:,readme,version' -n "pvw" -- "$@" )"
+	TEMP="$( getopt -o 'hkrv:' -l 'help,keep,readme,version,viewer:' -n "pvw" -- "$@" )"
 	eval set -- "$TEMP"
 	unset TEMP
 
@@ -149,18 +160,18 @@ parseArgs() {
                 shift
                 continue
 				;;
-            '-l'|'--link')
-                downloadFrom="$2"
-                shift 2
-                continue
-                ;;
             '-r'|'--readme')
                 preview "./README.md"
                 exit 0
                 ;;
-            '-v'|'--version')
+            '--version')
                 printf -- 'pvw v%s\n' "$version"
                 exit 0
+                ;;
+            '-v'|'--viewer')
+                pdfViewer="$2"
+                shift 2
+                continue
                 ;;
 			'--')
 				shift
