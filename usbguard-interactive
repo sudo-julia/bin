@@ -14,12 +14,11 @@ print_error() {
 	exit 1
 }
 
-# TODO option to set rules instead of one-time actions
 main() {
 	check_root
-	printf -- '%s\n\n' "USB Devices:"
-	usbguard list-devices
-	printf -- '\n'
+	printf -- 'USB Devices:\n\n'
+	usbguard list-devices | cut -d'"' -f1-5 | sed 's/hash//'
+    printf -- '\n'
 	read -rp "Which device would you like to operate on? " device
 	read -rp "[a]llow, [b]lock, or [r]eject device? " operation
 	case "$operation" in

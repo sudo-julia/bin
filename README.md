@@ -10,7 +10,7 @@ runs at xstart to organize monitors and other display-tangential programs
 deletes broken symlinks
 
 - [`ext-backup`](./ext-backup):
-backup script intended for mounting an ext4 external drive
+creates backups to an external drive
 
 - [`get-installed`](./get-installed):
 grabs all installed programs and saves them in a folder
@@ -22,10 +22,10 @@ opens up a text note
 interfaces with `yay` for interactive package management
 
 - [`pvw`](./pvw):
-preview files
+previews files as pdfs
 
 - [`pyformat`](./pyformat):
-format and lint a python file
+formats and lints a python file
 
 - [`spotlight`](./spotlight):
 a searcher that will eventually mimic the spotlight search in OSX
@@ -48,7 +48,7 @@ upgrades zinit and any zsh plugins
 interfaces with usbguard for interactive choices
 
 - [`volume`](./volume):
-change the volume and show adjusted levels via dunst
+changes the volume and shows adjusted levels via dunst
 
 - [`week_from.py`](./week_from.py):
 tells you the week from a given ISO 8601 date
