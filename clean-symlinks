@@ -11,9 +11,9 @@ remove_symlinks() {
 
 log_symlinks() {
 	# log broken symlinks to a tmpfile
-    output="$( mktemp --suffix '.txt' )"
-	find "${HOME}" -xtype l ! -exec test -e {} \; -print > "${output}" \
-	&& printf -- '%s\n' "Symlinks output to ${output} for review."
+	output="$(mktemp --suffix '.txt')"
+	find "${HOME}" -xtype l ! -exec test -e {} \; -print >"${output}" &&
+		printf -- '%s\n' "Symlinks output to ${output} for review."
 	printf -- '%s\n' "Exiting program without removing any symlinks."
 	exit 1
 }
@@ -21,13 +21,15 @@ log_symlinks() {
 # find broken symlinks (won't work on OSX)
 printf -- 'Broken symlinks in "%s":\n' "${HOME}"
 find "${HOME}" -xtype l ! -exec test -e {} \; -print
-printf -- '%s' "Remove broken symlinks? [Y/n] "; read -r remove
+printf -- '%s' "Remove broken symlinks? [Y/n] "
+read -r remove
 case "$remove" in
-	y|Y)
-        remove_symlinks
-        ;;
-	*)
-		log_symlinks
+y | Y)
+	remove_symlinks
+	;;
+*)
+	log_symlinks
+	;;
 esac
 
 exit 0

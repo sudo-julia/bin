@@ -3,31 +3,31 @@
 # DO NOT RUN AS SUPERUSER
 
 # get the python version
-pythonVer="$( env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b' )"
+pythonVer="$(env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b')"
 # set the output location for installed packages at runtime
-outputLoc="${HOME}/.local/lib/${pythonVer}/installed/$( date +'%Y-%m-%dT%H:%M:%S' )"
+outputLoc="${HOME}/.local/lib/${pythonVer}/installed/$(date +'%Y-%m-%dT%H:%M:%S')"
 
 # exit if script is run as root
-if (( "$( id -u )" == 0 )); then
+if (("$(id -u)" == 0)); then
 	tput setaf 1
 	printf -- '%s\n%s\n' "Error! Do not run as root." "Cancelling..." >&2
 	exit 1
 fi
 
 # checks if output folder exists by removing the filename with substring extraction
-if [[ ! -d "${outputLoc:0: -20}" ]]; then
-	mkdir "${outputLoc:0: -20}"
+if [[ ! -d "${outputLoc:0:-20}" ]]; then
+	mkdir "${outputLoc:0:-20}"
 fi
 
 # upgrade pip packages by listing and filtering outdated packages, then
 # feeding them to pip with xargs
 printf -- 'SWITCH TO VENV DUMBASS\n'
 printf -- '%s\n' "Upgrading pip packages..."
-env pip list --user -o \
-	| grep -v '\^-e' \
-	| tee "${outputLoc} "\
-	| grep -Ev 'sdist|--|Latest\s' \
-	| cut -d' ' -f1 \
-	| xargs -r -n1 env pip install --user -U \
-	&& printf -- '\n%s\n' "Pip packages upgraded."
+env pip list --user -o |
+	grep -v '\^-e' |
+	tee "${outputLoc} " |
+	grep -Ev 'sdist|--|Latest\s' |
+	cut -d' ' -f1 |
+	xargs -r -n1 env pip install --user -U &&
+	printf -- '\n%s\n' "Pip packages upgraded."
 return 0

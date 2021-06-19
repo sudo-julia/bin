@@ -12,7 +12,7 @@ format_file() {
 	mypy -- "$1"
 }
 
-while (( $# )); do
+while (($#)); do
 	format_file "$1"
 	shift
 done

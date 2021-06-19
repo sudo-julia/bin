@@ -4,37 +4,37 @@
 # TODO default to creating year and month dirs, use current day as default note name
 editor="$EDITOR"
 ft="md"
-note_name="$( date -I )"
+note_name="$(date -I)"
 note_dir="${HOME}/documents/personal/notes"
 
-current_year="$( date +"%Y" )"
-current_month="$( date +"%m" )"
+current_year="$(date +"%Y")"
+current_month="$(date +"%m")"
 
 year_dir="${note_dir}/${current_year}"
 month_dir="${year_dir}/${current_month}"
 
 create_dir() {
-    # TODO operate on "$1", which is note-dir (defaults to month dir)
-    if [[ ! -d "$1" ]]; then
-        mkdir -p -- "$1"
-    fi
+	# TODO operate on "$1", which is note-dir (defaults to month dir)
+	if [[ ! -d "$1" ]]; then
+		mkdir -p -- "$1"
+	fi
 }
 
 create_note() {
-    create_dir "$2"
-    "$1" -- "${2}/${3}.${4}"
+	create_dir "$2"
+	"$1" -- "${2}/${3}.${4}"
 }
 
 print_error() {
-    tput setaf 1
-    printf -- '[ERR] %s\n' "$*" >&2
-    tput sgr0
-    usage
-    exit 1
+	tput setaf 1
+	printf -- '[ERR] %s\n' "$*" >&2
+	tput sgr0
+	usage
+	exit 1
 }
 
 usage() {
-    cat << EOF
+	cat <<EOF
 Usage: note [<args>]
 
 Arguments are:
@@ -48,57 +48,56 @@ Arguments are:
 EOF
 }
 
-
 # handle arguments
-TEMP=$( getopt -o 'e:hlmn:t' -l 'editor:help,latex,markdown,name:,note-dir:,text' -n 'note' -- "$@" )
+TEMP=$(getopt -o 'e:hlmn:t' -l 'editor:help,latex,markdown,name:,note-dir:,text' -n 'note' -- "$@")
 eval set -- "$TEMP"
 unset TEMP
 
 while true; do
-    case "$1" in
-        '-e'|'--editor')
-            editor="$2"
-            shift 2
-            continue
-            ;;
-        '-h'|'--help')
-            usage
-            exit 0
-            ;;
-        '-l'|'--latex')
-            ft="latex"
-            shift
-            continue
-            ;;
-        '-m'|'--markdown')
-            ft="md"
-            shift
-            continue
-            ;;
-        '-n'|'--name')
-            note_name="$2"
-            shift 2
-            continue
-            ;;
-        '--note-dir')
-            note_dir="$2"
-            shift 2
-            continue
-            ;;
-        '-t'|'--txt')
-            ft="txt"
-            shift
-            continue
-            ;;
-        '--')
-            shift
-            break
-            ;;
-        *)
-            print_error "$2 is not a recognized argument"
-            exit 1
-            ;;
-    esac
+	case "$1" in
+	'-e' | '--editor')
+		editor="$2"
+		shift 2
+		continue
+		;;
+	'-h' | '--help')
+		usage
+		exit 0
+		;;
+	'-l' | '--latex')
+		ft="latex"
+		shift
+		continue
+		;;
+	'-m' | '--markdown')
+		ft="md"
+		shift
+		continue
+		;;
+	'-n' | '--name')
+		note_name="$2"
+		shift 2
+		continue
+		;;
+	'--note-dir')
+		note_dir="$2"
+		shift 2
+		continue
+		;;
+	'-t' | '--txt')
+		ft="txt"
+		shift
+		continue
+		;;
+	'--')
+		shift
+		break
+		;;
+	*)
+		print_error "$2 is not a recognized argument"
+		exit 1
+		;;
+	esac
 done
 
-create_note  "$editor" "$note_dir" "$note_name" "$ft"
+create_note "$editor" "$note_dir" "$note_name" "$ft"

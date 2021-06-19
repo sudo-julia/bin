@@ -3,23 +3,23 @@
 # starting oneliners taken from the archwiki, this is just a wrapper
 
 pint_install() {
-    yay -Slq | fzf -m --height=100% --preview='yay -Si {1}' | xargs -ro sudo yay -S
+	yay -Slq | fzf -m --height=100% --preview='yay -Si {1}' | xargs -ro sudo yay -S
 }
 
 pint_uninstall() {
-    yay -Qq | fzf -m --height=100% --preview 'yay -Qi {1}' | xargs -ro sudo yay -Rns
+	yay -Qq | fzf -m --height=100% --preview 'yay -Qi {1}' | xargs -ro sudo yay -Rns
 }
 
 print_error() {
-    tput setaf 1
-    printf -- '[ERR] %s\n' "$*" >&2
-    tput sgr0
-    usage
-    exit 1
+	tput setaf 1
+	printf -- '[ERR] %s\n' "$*" >&2
+	tput sgr0
+	usage
+	exit 1
 }
 
 usage() {
-    cat << EOF
+	cat <<EOF
 Usage: pint <command> [<args>]
 
 Commands are:
@@ -28,19 +28,20 @@ Commands are:
 EOF
 }
 
-if (( $# > 1 )); then
-    print_error "pint only takes one argument at a time"
-elif (( $# == 0 )); then
-    print_error "Please provide an argument"
+if (($# > 1)); then
+	print_error "pint only takes one argument at a time"
+elif (($# == 0)); then
+	print_error "Please provide an argument"
 fi
 
 case "$1" in
-    -R|remove|Remove)
-        pint_uninstall
-        ;;
-    -S|install|Install)
-        pint_install
-        ;;
-    *)
-        print_error "No such command '$1'"
+-R | remove | Remove)
+	pint_uninstall
+	;;
+-S | install | Install)
+	pint_install
+	;;
+*)
+	print_error "No such command '$1'"
+	;;
 esac

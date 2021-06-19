@@ -17,7 +17,8 @@ notify-send "Welcome, Juli!"
 numlockx &
 
 # remap capslock
-pgrep '[x]cape' && killall -9 xcape; '{ hash xcape >/dev/null }' 2>&1 && xcape -e 'Control_L=Escape' -t 100 &
+pgrep '[x]cape' && killall -9 xcape
+'{ hash xcape >/dev/null }' 2>&1 && xcape -e 'Control_L=Escape' -t 100 &
 
 # remove active tag from completed TODO items
 # the "/- \[ \]!" means "ignore lines starting with this pattern"
