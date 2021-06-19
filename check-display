@@ -7,7 +7,7 @@ wallpapers="${HOME}/documents/pictures/wallpapers"
 launch_picom() {
   killall -q picom
   while pgrep -u "${UID}" -x picom >/dev/null; do sleep 1; done
-	nohup picom --experimental-backends </dev/null >/dev/null 2>&1 &
+  nohup picom --experimental-backends </dev/null >/dev/null 2>&1 &
 }
 
 # set up monitors and wallpapers

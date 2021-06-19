@@ -16,5 +16,10 @@ sendfile() {
     ffsend upload -acIqy "$1" | sed 's/^/URL: /' | mail -s "$subject" "$2"
 }
 
-sendfile "$@"
+if (( "$#" == 0 )); then
+    usage
+else
+    sendfile "$@"
+fi
+
 exit 0
