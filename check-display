@@ -4,12 +4,6 @@
 connected="$(xrandr | awk '/HDMI-0/ {print $2}')"
 wallpapers="${HOME}/documents/pictures/wallpapers"
 
-launch_picom() {
-	killall -q picom
-	while pgrep -u "${UID}" -x picom >/dev/null; do sleep 1; done
-	nohup picom --experimental-backends </dev/null >/dev/null 2>&1 &
-}
-
 # set up monitors and wallpapers
 if [[ "${connected}" == connected ]]; then
 	xrandr --output HDMI-0 --auto --above DP-0
@@ -28,6 +22,6 @@ nohup dunst -config "${XDG_CONFIG_HOME}/dunst/dunstrc" </dev/null >/dev/null 2>&
 "${XDG_CONFIG_HOME}/polybar/scripts/launch.sh"
 
 # compositor
-launch_picom
+"${HOME}/bin/picom-restart.sh"
 
 exit 0

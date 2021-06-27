@@ -159,6 +159,7 @@ parseArgs() {
 			usage
 			;;
 		'-k' | '--keep')
+			# TODO (jam) change the location the pdf is stored to (opt arg?)
 			preserve=true
 			shift
 			continue
