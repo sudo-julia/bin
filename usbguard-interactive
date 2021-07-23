@@ -14,6 +14,7 @@ print_error() {
 	exit 1
 }
 
+# TODO (jam) add option to operate on multiple devices
 main() {
 	check_root
 	printf -- 'USB Devices:\n\n'

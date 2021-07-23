@@ -1,0 +1,54 @@
+#!/bin/sh
+# generate a license
+# requires fzf
+
+name="$USER"
+year="$(date "+%Y")"
+licenseDir="${XDG_DATA_DIR}/licenses"
+
+downloadLicenses() {
+	# Apache-2.0
+	wget -q "https://www.apache.org/licenses/LICENSE-2.0.txt" -O "${licenseDir}/Apache-2.0"
+	# GPL-3.0
+	wget -q "https://mit-license.org/license.txt" -O "${licenseDir}/GPL-3.0"
+	# MIT
+	wget -q "https://mit-license.org/license.txt" -O "${licenseDir}/MIT"
+}
+
+formatApache2() {
+	sed -i "s/\[yyyy\]/${year}/; s/\[name of copyright owner\]/${name}/" "$1"
+}
+
+formatGPL3() {
+	head -- "${licenseDir}/GPL-3.0" | sed "s/(C)/(C) ${year} ${name}/" >/tmp/GPL3.tmp
+	tail -n+10 -- "${licenseDir}/GPL-3.0" >>/tmp/GPL3.tmp
+	mv -- /tmp/GPL3.tmp "$1"
+}
+
+formatMIT() {
+	sed -ir "s/[0-9]{4}/${year} ${name}/" "$1"
+}
+
+pickLicense() {
+	if find "$licenseDir" -prune -type d -empty | grep -q '^'; then
+		mkdir -p -- "${licenseDir}"
+		downloadLicenses
+	fi
+	license="$(find "${licenseDir}" -type f -printf "%f\n" | fzf +m)"
+	case "$license" in
+	Apache-2.0)
+		cp -f -- "${licenseDir}/${license}" ./LICENSE
+		formatApache2 "./LICENSE"
+		;;
+	GPL-3.0)
+		cp -f -- "${licenseDir}/${license}" ./LICENSE
+		formatGPL3 "./LICENSE"
+		;;
+	MIT)
+		cp -f -- "${licenseDir}/${license}" ./LICENSE
+		formatMIT "./LICENSE"
+		;;
+	esac
+}
+
+pickLicense

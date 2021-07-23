@@ -9,6 +9,6 @@ case "$1" in
 		\ echo -e "# TODO\n\n## Reminders\n\n## Complete\n\n" >"${todo_dir}/TODO.md"
 	;;
 *)
-	nvim -- "${todo_dir}/TODO.md"
+	nvim +3 -- "${todo_dir}/TODO.md"
 	;;
 esac

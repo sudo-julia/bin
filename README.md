@@ -12,6 +12,9 @@ deletes broken symlinks
 - [`ext-backup`](./ext-backup):
 creates backups to an external drive
 
+- [`gen-license`](./gen-license):
+generates a license file for you based off of $USER and the current year
+
 - [`get-installed`](./get-installed):
 grabs all installed programs and saves them in a folder
 

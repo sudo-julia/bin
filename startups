@@ -26,6 +26,8 @@ sed -i '/- \[ \]/!s/<\!--a-->//' "${HOME}/lib/TODO.md"
 
 signal-desktop &
 
+tutanota-desktop &
+
 # kill cursor
 unclutter 3 &
 
