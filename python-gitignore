@@ -1,0 +1,15 @@
+#!/bin/sh
+# generate a gitignore for a python project
+
+workingDir="$(pwd | rev | cut -d'/' -f1 | rev)"
+
+printf ".mypy_cache/
+.python-version
+.vim/
+*@neomake*.py$
+build/
+dist/
+poetry.lock
+%s.egg-info
+*__pycache__*
+*.pyc$\n" "$workingDir" >./.gitignore

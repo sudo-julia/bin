@@ -1,5 +1,8 @@
 # homemade utilities
 
+This repo is my ~/bin folder. [./posix](./posix) contains POSIX versions of
+some of the scripts.
+
 - [`change-bright`](./change-bright):
 adjusts monitor brightness
 
@@ -29,6 +32,9 @@ previews files as pdfs
 
 - [`pyformat`](./pyformat):
 formats and lints a python file
+
+-[`python-gitignore`](./python-gitignore):
+creates a `.gitignore` for a Python project in the current directory
 
 - [`spotlight`](./spotlight):
 a searcher that will eventually mimic the spotlight search in OSX
