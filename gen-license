@@ -34,7 +34,7 @@ pickLicense() {
 		mkdir -p -- "${licenseDir}"
 		downloadLicenses
 	fi
-	license="$(find "${licenseDir}" -type f -printf "%f\n" | fzf +m)"
+	license="$(find "${licenseDir}" -type f -printf "%f\n" | fzf +m --height=15%)"
 	case "$license" in
 	Apache-2.0)
 		cp -f -- "${licenseDir}/${license}" ./LICENSE

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# shellcheck disable=SC2016
+configFile="${XDG_CONFIG_HOME}/i3/config"
+wsRegex='workspace \$ws([0-9]|10) gaps (top|bottom) [0-9]{2}'
+
+commentLines() {
+	# removes gaps
+	sed -Ei "/${wsRegex}/ s/^/# /" "$configFile"
+	gapStatus="disabled"
+}
+
+uncommentLines() {
+	# adds gaps
+	sed -Ei"/${wsRegex}/ s/^# //" "$configFile"
+	gapStatus="enabled"
+}
+
+if grep '^workspace \$' "$configFile"; then
+	commentLines
+else
+	uncommentLines
+fi
+
+i3-msg "restart"
+notify-send "i3 gaps ${gapStatus}"
