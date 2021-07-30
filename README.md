@@ -21,6 +21,10 @@ generates a license file for you based off of $USER and the current year
 - [`get-installed`](./get-installed):
 grabs all installed programs and saves them in a folder
 
+- [`i3-toggle-gaps`](./i3-toggle-gaps):
+toggles comments on the lines enabling gaps in your i3 config  
+*note: workspaces must be reloaded for changes to take place*
+
 - [`note`](./note):
 opens up a text note
 

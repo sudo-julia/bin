@@ -12,15 +12,15 @@ commentLines() {
 
 uncommentLines() {
 	# adds gaps
-	sed -Ei"/${wsRegex}/ s/^# //" "$configFile"
+	sed -Ei "/${wsRegex}/ s/^# //" "$configFile"
 	gapStatus="enabled"
 }
 
-if grep '^workspace \$' "$configFile"; then
+if grep -q '^workspace \$' "$configFile"; then
 	commentLines
 else
 	uncommentLines
 fi
 
-i3-msg "restart"
+i3-msg "reload" >/dev/null
 notify-send "i3 gaps ${gapStatus}"

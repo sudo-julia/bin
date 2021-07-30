@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # preview a pdf
-# depends on: pandoc, wget (optional), fzf (optional)
+# depends on: pandoc, wget, fzf, poppler (for pdfunite)
 # Copyright (c) 2021 Julia
 
 version="1.3.2"
@@ -59,6 +59,12 @@ getFile() {
 	wget -q "$1" -O "${downloadedFile}"
 	trap 'rm -f ${downloadedFile}' EXIT
 	echo "${downloadedFile}"
+}
+
+merge() {
+	# merge pdfs based on the order they're given as args
+	# TODO (jam) use pdfunite
+	:
 }
 
 main() {
