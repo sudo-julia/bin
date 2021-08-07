@@ -33,9 +33,10 @@ update_system() {
 update_extras() {
 	# update extra programs and non-arch package managers
 	# if you don't want to use any of these, simply delete or comment-out the line
-	if [[ -s "${user_home}/bin/upgrade_zinit" ]] &&
-		[[ -s "${user_home}/bin/upgrade_pip" ]]; then
+	if [[ -s "${user_home}/bin/upgrade_zinit" ]]; then
 		sudo -u "${user}" zsh "${user_home}/bin/upgrade-zinit"
+	fi
+	if [[ -s "${user_home}/bin/upgrade_pip" ]]; then
 		sudo -u "${user}" "${user_home}/bin/upgrade-pip"
 	fi
 	if hash tldr >/dev/null; then

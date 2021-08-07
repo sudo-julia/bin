@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # create or edit a note file
 
+set -e
 # TODO default to creating year and month dirs, use current day as default note name
-editor="$EDITOR"
+if [[ "$EDITOR" ]]; then
+	editor="$EDITOR"
+else
+	editor=nano
+fi
 ft="md"
 note_name="$(date -I)"
 note_dir="${HOME}/documents/personal/notes"
@@ -22,7 +27,8 @@ create_dir() {
 
 create_note() {
 	create_dir "$2"
-	"$1" -- "${2}/${3}.${4}"
+	"$1" -- "${2}/${3}"
+	exit 0
 }
 
 print_error() {
@@ -39,22 +45,25 @@ Usage: note [<args>]
 
 Arguments are:
     -e, --editor    Chose the editor to use (default \$EDITOR)
+    -f, --filetype  Set the filetype of the new note (defaults to markdown)
     -h, --help      Display this help
-    -l, --latex     Create the note as a .latex file
     -n, --name      Set the name of the note
     --note-dir      Directory to store the note in
-    -m, --markdown  Create the note as a .md file (default)
-    -t, --text      Create the note as a .txt file
 EOF
 }
 
 # handle arguments
-TEMP=$(getopt -o 'e:hlmn:t' -l 'editor:help,latex,markdown,name:,note-dir:,text' -n 'note' -- "$@")
+TEMP=$(getopt -o 'e:f:hn:' -l 'filetype:,editor:,help,name:,note-dir:' -n 'note' -- "$@")
 eval set -- "$TEMP"
 unset TEMP
 
 while true; do
 	case "$1" in
+	'-f' | '--filetype')
+		ft="$2"
+		shift 2
+		continue
+		;;
 	'-e' | '--editor')
 		editor="$2"
 		shift 2
@@ -64,16 +73,6 @@ while true; do
 		usage
 		exit 0
 		;;
-	'-l' | '--latex')
-		ft="latex"
-		shift
-		continue
-		;;
-	'-m' | '--markdown')
-		ft="md"
-		shift
-		continue
-		;;
 	'-n' | '--name')
 		note_name="$2"
 		shift 2
@@ -82,11 +81,6 @@ while true; do
 	'--note-dir')
 		note_dir="$2"
 		shift 2
-		continue
-		;;
-	'-t' | '--txt')
-		ft="txt"
-		shift
 		continue
 		;;
 	'--')
@@ -100,4 +94,4 @@ while true; do
 	esac
 done
 
-create_note "$editor" "$note_dir" "$note_name" "$ft"
+create_note "$editor" "$note_dir" "${note_name}.${ft}"
