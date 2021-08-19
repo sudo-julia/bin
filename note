@@ -3,6 +3,7 @@
 
 set -e
 # TODO default to creating year and month dirs, use current day as default note name
+# TODO list notes and pick note to edit
 if [[ "$EDITOR" ]]; then
 	editor="$EDITOR"
 else
@@ -31,11 +32,37 @@ create_note() {
 	exit 0
 }
 
+list_notes() {
+	# TODO (jam) integrate FZF, better system for choosing note
+	declare -a existing_notes
+	display_num=1
+
+	# remove the filepath from note names
+	for notefile in "$note_dir"/*; do
+		notefile="$(basename -- "$notefile")"
+		existing_notes+=("$notefile")
+	done
+
+	for note in "${existing_notes[@]}"; do
+		printf -- "%d: %s\n" "$display_num" "$note"
+		display_num=$((display_num + 1))
+	done
+
+	echo
+	read -rp "Which note would you like to edit? " choice_num
+	# make sure that the user input is a number in the range of the array
+	if [[ ! "$choice_num" =~ ^[0-9]+$ ]]; then
+		print_error "$choice_num is not a number. Exiting."
+	elif ((choice_num > "${#existing_notes[@]}")) || ((choice_num < 1)); then
+		print_error "Number selected is not valid. Exiting."
+	fi
+	"$editor" "${note_dir}/${existing_notes[$choice_num - 1]}"
+}
+
 print_error() {
 	tput setaf 1
 	printf -- '[ERR] %s\n' "$*" >&2
 	tput sgr0
-	usage
 	exit 1
 }
 
@@ -47,13 +74,14 @@ Arguments are:
     -e, --editor    Chose the editor to use (default \$EDITOR)
     -f, --filetype  Set the filetype of the new note (defaults to markdown)
     -h, --help      Display this help
+    -l, --list      List all existing notes and choose one to edit interactively
     -n, --name      Set the name of the note
     --note-dir      Directory to store the note in
 EOF
 }
 
 # handle arguments
-TEMP=$(getopt -o 'e:f:hn:' -l 'filetype:,editor:,help,name:,note-dir:' -n 'note' -- "$@")
+TEMP=$(getopt -o 'e:f:hln:' -l 'filetype:,editor:,help,list,name:,note-dir:' -n 'note' -- "$@")
 eval set -- "$TEMP"
 unset TEMP
 
@@ -71,6 +99,10 @@ while true; do
 		;;
 	'-h' | '--help')
 		usage
+		exit 0
+		;;
+	'-l' | '--list')
+		list_notes
 		exit 0
 		;;
 	'-n' | '--name')
