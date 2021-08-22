@@ -63,7 +63,7 @@ getFile() {
 
 merge() {
 	# merge pdfs based on the order they're given as args
-	# TODO (jam) use pdfunite
+	# TODO: (jam) use pdfunite
 	:
 }
 
@@ -73,7 +73,7 @@ main() {
 	# check for arguments and run preview() on every valid file given
 	parseArgs "$@"
 
-	# TODO (jam) option to combine files into one pdf (pandoc -s)
+	# TODO: (jam) option to combine files into one pdf (pandoc -s)
 	# declare arrays for args and opts, sort provided arguments accordingly
 	declare -a args opts
 	for arg in "$@"; do
@@ -94,7 +94,7 @@ main() {
 
 	# if edit flag is present, edit input files
 	if [[ "$edit" ]]; then
-		# TODO (jam) implement detectUrl here
+		# TODO: (jam) implement detectUrl here
 		for f in "${args[@]}"; do
 			"$EDITOR" -- "$f"
 		done
@@ -165,7 +165,7 @@ parseArgs() {
 			usage
 			;;
 		'-k' | '--keep')
-			# TODO (jam) change the location the pdf is stored to (opt arg?)
+			# TODO: (jam) change the location the pdf is stored to (opt arg?)
 			preserve=true
 			shift
 			continue

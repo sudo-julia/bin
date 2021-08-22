@@ -2,8 +2,8 @@
 # create or edit a note file
 
 set -e
-# TODO default to creating year and month dirs, use current day as default note name
-# TODO list notes and pick note to edit
+# TODO: default to creating year and month dirs, use current day as default note name
+# TODO: list notes and pick note to edit
 if [[ "$EDITOR" ]]; then
 	editor="$EDITOR"
 else
@@ -20,7 +20,7 @@ year_dir="${note_dir}/${current_year}"
 month_dir="${year_dir}/${current_month}"
 
 create_dir() {
-	# TODO operate on "$1", which is note-dir (defaults to month dir)
+	# TODO: operate on "$1", which is note-dir (defaults to month dir)
 	if [[ ! -d "$1" ]]; then
 		mkdir -p -- "$1"
 	fi
@@ -33,7 +33,7 @@ create_note() {
 }
 
 list_notes() {
-	# TODO (jam) integrate FZF, better system for choosing note
+	# TODO: (jam) integrate FZF, better system for choosing note
 	declare -a existing_notes
 	display_num=1
 
@@ -56,6 +56,7 @@ list_notes() {
 	elif ((choice_num > "${#existing_notes[@]}")) || ((choice_num < 1)); then
 		print_error "Number selected is not valid. Exiting."
 	fi
+
 	"$editor" "${note_dir}/${existing_notes[$choice_num - 1]}"
 }
 

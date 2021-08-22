@@ -20,7 +20,7 @@ numlockx &
 pgrep '[x]cape' && killall -9 xcape
 '{ hash xcape >/dev/null }' 2>&1 && xcape -e 'Control_L=Escape' -t 100 &
 
-# remove active tag from completed TODO items
+# remove active tag from completed TODO: items
 # the "/- \[ \]!" means "ignore lines starting with this pattern"
 sed -i '/- \[ \]/!s/<\!--a-->//' "${HOME}/lib/TODO.md"
 

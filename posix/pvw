@@ -53,7 +53,7 @@ getFile() {
 	if [ "$preserve" ]; then
 		# trim the url name to the specific file, and replace any extension with html
 		# this exists to remove html anchors from the filename
-		tmp="${1##*/}" # TODO (jam) change this
+		tmp="${1##*/}" # TODO: (jam) change this
 		downloadedFile="$(changeExt "$tmp" "html")"
 		unset tmp
 	else
@@ -71,7 +71,7 @@ main() {
 	# check for arguments and run preview() on every valid file given
 	parseArgs "$@"
 
-	# TODO (jam) option to combine files into one pdf (pandoc -s)
+	# TODO: (jam) option to combine files into one pdf (pandoc -s)
 	# declare arrays for args and opts, sort provided arguments accordingly
 	declare -a args opts
 	for arg in "$@"; do
@@ -92,7 +92,7 @@ main() {
 
 	# if edit flag is present, edit input files
 	if [ "$edit" ]; then
-		# TODO (jam) implement detectUrl here
+		# TODO: (jam) implement detectUrl here
 		for f in "${args[@]}"; do
 			"$EDITOR" -- "$f"
 		done
@@ -162,7 +162,7 @@ parseArgs() {
 			usage
 			;;
 		'-k' | '--keep')
-			# TODO (jam) change the location the pdf is stored to (opt arg?)
+			# TODO: (jam) change the location the pdf is stored to (opt arg?)
 			preserve=true
 			shift
 			continue

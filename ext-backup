@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # back up /{etc,home,var} to a LUKS encrypted external drive
 
-# TODO add options for progress bar, no output and verbose (current)
-# TODO make include and exclude patterns as variables
-# TODO allow these to be passed as arguments
+# TODO: add options for progress bar, no output and verbose (current)
+# TODO: make include and exclude patterns as variables
+# TODO: allow these to be passed as arguments
 includeFile="/home/jam/bin/.rInclude"
 excludeFile="/home/jam/bin/.rExclude"
 
@@ -15,7 +15,7 @@ logLocation="/tmp/ext-backup_$(date '+%s').log"
 USER_HOME="$(getent passwd "${SUDO_USER}" | cut -d':' -f6)"
 
 check_disk() {
-	# TODO this section is finicky, make sure it responds properly
+	# TODO: this section is finicky, make sure it responds properly
 	if lsblk -l | grep "/dev/mapper/${cryptDevice}" >/dev/null; then
 		cryptsetup open "${externalDrive}" "${cryptDevice}"
 		printf -- '%s\n' "'${externalDrive}' opened as '${cryptDevice}'"
@@ -48,7 +48,7 @@ check_root() {
 sync_main() {
 	# sync user's "/home" and then "/var" and "/etc"
 	# if you want to add another dir, just provide it as an arg to sync_dirs
-	# TODO make verbosity an option
+	# TODO: make verbosity an option
 	if ! rsync -mapuc \
 		--exclude-from="${excludeFile}" \
 		--include-from="${includeFile}" \
