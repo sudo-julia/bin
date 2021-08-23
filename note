@@ -3,7 +3,6 @@
 
 set -e
 # TODO: default to creating year and month dirs, use current day as default note name
-# TODO: list notes and pick note to edit
 if [[ "$EDITOR" ]]; then
 	editor="$EDITOR"
 else
@@ -33,31 +32,16 @@ create_note() {
 }
 
 list_notes() {
-	# TODO: (jam) integrate FZF, better system for choosing note
-	declare -a existing_notes
-	display_num=1
+	declare -A notes
 
-	# remove the filepath from note names
-	for notefile in "$note_dir"/*; do
-		notefile="$(basename -- "$notefile")"
-		existing_notes+=("$notefile")
+	# add all notes to an associate array with the filename as the key and full path as
+	# the value
+	for f in "$note_dir"/*; do
+		notes+=(["$(basename "$f")"]="$f")
 	done
 
-	for note in "${existing_notes[@]}"; do
-		printf -- "%d: %s\n" "$display_num" "$note"
-		display_num=$((display_num + 1))
-	done
-
-	echo
-	read -rp "Which note would you like to edit? " choice_num
-	# make sure that the user input is a number in the range of the array
-	if [[ ! "$choice_num" =~ ^[0-9]+$ ]]; then
-		print_error "$choice_num is not a number. Exiting."
-	elif ((choice_num > "${#existing_notes[@]}")) || ((choice_num < 1)); then
-		print_error "Number selected is not valid. Exiting."
-	fi
-
-	"$editor" "${note_dir}/${existing_notes[$choice_num - 1]}"
+	to_edit="$(echo "${!notes[@]}" | tr ' ' '\n' | fzf +m)"
+	"$editor" -- "${notes[$to_edit]}"
 }
 
 print_error() {
@@ -103,7 +87,7 @@ while true; do
 		exit 0
 		;;
 	'-l' | '--list')
-		list_notes
+		list_more_notes
 		exit 0
 		;;
 	'-n' | '--name')

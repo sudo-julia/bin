@@ -90,9 +90,8 @@ remove_orphans() {
 
 clear_paccache() {
 	# get_user_input isn't in use because it borks the cache-clearing
-	# TODO: (jam) the packages displayed by the check don't match what's cleared
 	printf -- '%s\n' "Checking pacman cache for old packages..."
-	paccache -d
+	paccache -dvk2
 	read -rp ":: Clear pacman cache? [Y/n] " confirm
 	case "$confirm" in
 	y | Y)
