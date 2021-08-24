@@ -41,6 +41,7 @@ list_notes() {
 	done
 
 	to_edit="$(echo "${!notes[@]}" | tr ' ' '\n' | fzf +m)"
+    # FIX: integrate this with create_note()
 	"$editor" -- "${notes[$to_edit]}"
 }
 
@@ -87,7 +88,7 @@ while true; do
 		exit 0
 		;;
 	'-l' | '--list')
-		list_more_notes
+		list_notes
 		exit 0
 		;;
 	'-n' | '--name')

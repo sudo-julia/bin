@@ -6,5 +6,6 @@ chromedriver
 extras/
 geckodriver
 git-prompt.sh
+markdownlint
 screenshot.sh
 updateZinit.zsh
