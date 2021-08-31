@@ -2,6 +2,7 @@
 .rExclude
 .rInclude
 archives/
+bash-language-server
 chromedriver
 extras/
 geckodriver

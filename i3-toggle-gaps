@@ -17,24 +17,13 @@ uncomment_lines() {
 }
 
 
-if [ "$#" ]; then
-    case "$1" in
-        "e"|"enable")
-            uncomment_lines
-            ;;
-        "d"|"disable")
-            comment_lines
-            ;;
-    esac
+if grep -q '^workspace \$' "$config_file"; then
+    comment_lines
 else
-    if grep -q '^workspace \$' "$config_file"; then
-        comment_lines
-    else
-        uncomment_lines
-    fi
+    uncomment_lines
+fi
 
-    if ! xset q &>/dev/null; then
-        i3-msg "reload" >/dev/null
-        notify-send "i3 gaps ${gap_status}"
-    fi
+if ! xset q &>/dev/null; then
+    i3-msg "reload" >/dev/null
+    notify-send "i3 gaps ${gap_status}"
 fi
