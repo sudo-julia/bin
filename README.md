@@ -12,6 +12,9 @@ runs at xstart to organize monitors and other display-tangential programs
 - [`clean-symlinks`](./clean-symlinks):
 deletes broken symlinks
 
+- [`cr`](./cr):
+compiles and runs a c program with any other arguments provided
+
 - [`ext-backup`](./ext-backup):
 creates backups to an external drive
 
@@ -27,6 +30,10 @@ toggles comments on the lines enabling gaps in your i3 config
 
 - [`note`](./note):
 opens up a text note
+
+- [`picom-restart.sh`]:
+restart picom. meant to be called from [`check-display`](./check-display),
+hence the extension
 
 - [`pint`](./pint):
 interfaces with `yay` for interactive package management
@@ -50,9 +57,6 @@ programs that get run every time my computer starts
 updates packages (intended for pacman/yay)
   - requires [informant](https://github.com/bradford-smith94/informant),
 [pacman-contrib](https://git.archlinux.org/pacman-contrib.git/about) and [yay](https://github.com/Jguer/yay)
-
-- [`upgrade-pip`](./upgrade-pip):
-updates outdated python packages with pip
 
 - [`upgrade-zinit`](./upgrade-zinit):
 upgrades zinit and any zsh plugins
