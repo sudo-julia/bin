@@ -1,7 +1,8 @@
 # homemade utilities
 
 This repo is my ~/bin folder. [./posix](./posix) contains POSIX versions of
-some of the scripts.
+some of the scripts. Please excuse the alternating of snake_case and camelCase
+variable/function names, I can't make up my mind for personal scripts :)
 
 - [`change-bright`](./change-bright):
 adjusts monitor brightness
