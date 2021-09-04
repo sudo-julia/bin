@@ -33,11 +33,8 @@ update_system() {
 update_extras() {
   # update extra programs and non-arch package managers
   # if you don't want to use any of these, simply delete or comment-out the line
-  if [[ -s "${user_home}/bin/upgrade_zinit" ]]; then
+  if [[ -s "${user_home}/bin/upgrade-zinit" ]]; then
     sudo -u "${user}" zsh "${user_home}/bin/upgrade-zinit"
-  fi
-  if [[ -s "${user_home}/bin/upgrade_pip" ]]; then
-    sudo -u "${user}" "${user_home}/bin/upgrade-pip"
   fi
   if hash tldr >/dev/null; then
     sudo -u "${user}" /usr/bin/tldr --update |
@@ -130,7 +127,7 @@ clear_paccache() {
 check_last_date() {
   # check if it's time to run update_extras
   if [[ -z "${last_date}" ]]; then
-    # if the user doesn't want to make lastDate file
+    # if the user doesn't want to make last_date file
     get_user_input \
       ":: Update extra programs? " \
       "update_extras" \
@@ -140,10 +137,11 @@ check_last_date() {
           echo '0000-00-00' >"${last_date}"
         elif [[ -s "${last_date}" ]]; then
           # check date to see if it's been a week since the last update
-          local last_date current_date next_date future_date
-          last_date="$(cat "${last_date}")"
+          # TODO: swap last_date and last_date_file
+          local last_date_file current_date next_date future_date
+          last_date_file="$(cat "${last_date}")"
           current_date="$(date "+%Y-%m-%d")"
-          next_date="$(env python3 "${user_home}/bin/week_from.py" "${last_date}")"
+          next_date="$(env python3 "${user_home}/bin/week_from.py" "${last_date_file}")"
           future_date="$(env python3 "${user_home}/bin/week_from.py" "${current_date}")"
           if (("${current_date//-/}" >= "${next_date//-/}")); then
             update_extras "${current_date}" "${future_date}"

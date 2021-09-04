@@ -15,13 +15,18 @@ main() {
 		outfile="./bin/${1:0:-2}"
 	fi
 
+  # TODO: add option for custom gcc flags
   # FIXME: make sure this uses arguments on a precompiled version
 	if [ -z "$outfile" ] && [ "${outfile}" -nt "$1" ] && [ -z "${recompile+x}" ]; then
-		"$outfile"
+    "$outfile"
+    exit_code="$?"
+    exit "$exit_code"
 	else
 		cc -Wall -Werror -O2 -std=c99 -pedantic "$1" -o "$outfile" &&
 			shift &&
 			"$outfile" "$@"
+      exit_code="$?"
+      exit "$exit_code"
 	fi
 	unset outfile
 }
