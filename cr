@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 # Compile and Run a c program
+# shellcheck disable=SC2086
+set -e
 
 main() {
 	parse_args "$@"
@@ -12,21 +14,25 @@ main() {
 		outfile="./bin/${1:0:-2}"
 	fi
 
-  # set default flags if none were passed
-	if [ -z "${flags+x}" ]; then
-		flags="-Wall -Werror -O2 -std=c99 -pedantic"
-	fi
+    # FIXME: test this before integrating
+    # set default flags if none were passed
+    #if [ -z "${noflags+x}" ]; then
+    #    flags=""
+    #elif [ -z "${flags+x}" ]; then
+    #    # NOTE: should outfile be separate?
+	#	flags="-Wall -Werror -O2 -std=c99 -pedantic -o ${outfile}"
+	#fi
 
 	# FIXME: make sure this uses arguments on a precompiled version
 	if [ "${outfile}" -nt "$1" ] && [ -z "${recompile+x}" ]; then
-		"$outfile"
+        "$outfile" $prog_flags
 		exit_code="$?"
 		exit "$exit_code"
 	else
-		# shellcheck disable=SC2086
-		cc $flags "$1" -o "$outfile" &&
-			shift &&
-			"$outfile" "$@"
+		#cc $flags "$1" &&
+        cc -Wall -Werror -O2 -std=c99 -pedantic -o "$outfile" "$1" &&
+        shift &&
+        "$outfile" $prog_flags
 		exit_code="$?"
 		exit "$exit_code"
 	fi
@@ -34,7 +40,7 @@ main() {
 }
 
 is_valid_filetype() {
-	ft="${1#*.}"
+	ft="${1##*.}"
 	declare -a valid_fts
 	valid_fts=(c cpp rs)
 	if ! printf '%s\n' "${valid_fts[@]}" | grep -xq "$ft"; then
@@ -45,7 +51,7 @@ is_valid_filetype() {
 }
 
 parse_args() {
-	TEMP="$(getopt -o 'f:ho:r' -l 'flags:,help,output:,recompile' -n 'cr' -- "$@")"
+	TEMP="$(getopt -o 'f:hno:r' -l 'flags:,help,noflags,output:,recompile' -n 'cr' -- "$@")"
 	eval set --"$TEMP"
 	unset TEMP
 
@@ -56,7 +62,7 @@ parse_args() {
 
 	while true; do
 		case "$1" in
-		'-f' | '--flags')
+		'-c' | '--compiler-flags')
 			flags="$2"
 			shift 2
 			continue
@@ -65,6 +71,16 @@ parse_args() {
 			usage
 			exit 0
 			;;
+        '-n' | '--noflags')
+            noflags=true
+            shift
+            continue
+            ;;
+        '-p' | '--program-flags')
+            prog_flags="$2"
+            shift 2
+            continue
+            ;;
 		'-o' | '--output')
 			outfile="$2"
 			shift 2
@@ -75,7 +91,11 @@ parse_args() {
 			shift
 			continue
 			;;
+        '-v' | '--verbose')
+            verbose=true
+            ;;
 		'--')
+            # TODO: make sure that this works with args passed to any file
 			shift
 			break
 			;;
@@ -92,11 +112,13 @@ usage() {
 Usage: cr [<cr args>] [file] [<file args>]
 
 Arguments are:
-  -f, --flags          Flags to pass to the compiler (surround in quotes)
-  -o, --output <file>  Output to <file>
-  -r, --recompile      Recompile the input file, even if there's a compiled
-                       version that's up to date
-  -h, --help           Display this help and exit
+  -f, --compiler-flags <flags>  Flags to pass to the compiler (surround in quotes)
+  -n, --noflags                 Pass no flags to the compiler
+  -p, --program-flags <flags>   Flags to pass to the compiled program (surround in quotes)
+  -o, --output <file>           Output to <file>
+  -r, --recompile               Recompile the input file, even if there's a compiled
+                                version that's up to date
+  -h, --help                    Display this help and exit
 EOF
 }
 

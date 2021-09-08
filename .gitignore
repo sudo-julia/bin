@@ -4,6 +4,7 @@
 archives/
 bash-language-server
 chromedriver
+cr2
 extras/
 geckodriver
 git-prompt.sh

@@ -7,7 +7,7 @@ fd -H "nohup.out" -x rm '{}' &
 firefox &
 
 # remove duplicates from history file
-gawk -i inplace '!x[$0]++' "${HISTFILE}"
+# gawk -i inplace '!x[$0]++' "${HISTFILE}"
 
 keepassxc &
 
