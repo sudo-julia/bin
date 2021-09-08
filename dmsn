@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+# enter an image and percentage to scale by and print the result
+# requires pillow, which is annoying, but if i write another bash script i'll drop dead
+
+import sys
+from PIL import Image, UnidentifiedImageError
+
+
+def main():
+    """perform the main operations"""
+    if len(sys.argv) != 3 or ("-h", "--help") in sys.argv:
+        usage()
+
+    image = sys.argv[1]
+    try:
+        percent = float(sys.argv[2].strip("%"))
+    except ValueError:
+        print(f"Invalid value for percent: {sys.argv[2]}. Value must be a number.")
+        usage(1)
+
+    dimensions = get_dimensions(image)
+    dimensions = resize_dimensions(dimensions, percent * 0.01)
+    print(f"{dimensions['width']} x {dimensions['height']}")
+
+
+def get_dimensions(image):
+    """get the dimensions of {image}"""
+    try:
+        img = Image.open(image)
+    except FileNotFoundError as err:
+        print(err)
+        sys.exit(1)
+    except UnidentifiedImageError:
+        print(f"{image} is not an image.")
+        sys.exit(1)
+    width, height = img.size
+    return {"width": width, "height": height}
+
+
+def resize_dimensions(dimensions, scaling):
+    """return the new dimensions of an image"""
+    dimensions["width"] = dimensions["width"] * scaling
+    dimensions["height"] = dimensions["height"] * scaling
+    return dimensions
+
+
+def usage(exit_code=0):
+    """print usage information"""
+    print(
+        """
+usage: dmsn [-h] image percent
+
+positional arguments:
+    image  path to an image to get the dimensions of (string)
+
+optional arguments:
+    percent     percentage to scale the image by (number)
+    -h, --help  show this help message and exit
+""".strip()
+    )
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()

@@ -16,6 +16,9 @@ deletes broken symlinks
 - [`cr`](./cr):
 compiles and runs a c program with any other arguments provided
 
+- [`dmsn`](./dmsn):
+get the dimensions of an image
+
 - [`ext-backup`](./ext-backup):
 creates backups to an external drive
 
