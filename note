@@ -2,24 +2,16 @@
 # create or edit a note file
 
 set -e
-# TODO: default to creating year and month dirs, use current day as default note name
 if [[ "$EDITOR" ]]; then
 	editor="$EDITOR"
 else
-	editor=nano
+	editor=vim
 fi
 ft="md"
 note_name="$(date -I)"
 note_dir="${HOME}/documents/personal/notes"
 
-current_year="$(date +"%Y")"
-current_month="$(date +"%m")"
-
-year_dir="${note_dir}/${current_year}"
-month_dir="${year_dir}/${current_month}"
-
 create_dir() {
-	# TODO: operate on "$1", which is note-dir (defaults to month dir)
 	if [[ ! -d "$1" ]]; then
 		mkdir -p -- "$1"
 	fi
@@ -27,8 +19,13 @@ create_dir() {
 
 create_note() {
 	create_dir "$2"
-	"$1" -- "${2}/${3}"
-	exit 0
+  if [[ "$#" -eq 3 ]]; then
+    "$1" -- "${2}/${3}"
+    exit 0
+  else
+    echo "Not Implemented"
+    exit 4
+  fi
 }
 
 list_notes() {
@@ -40,8 +37,8 @@ list_notes() {
 		notes+=(["$(basename "$f")"]="$f")
 	done
 
-	to_edit="$(echo "${!notes[@]}" | tr ' ' '\n' | fzf +m)"
-    # FIX: integrate this with create_note()
+	to_edit="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m)"
+	# FIX: integrate this with create_note()
 	"$editor" -- "${notes[$to_edit]}"
 }
 

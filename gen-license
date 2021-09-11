@@ -2,7 +2,7 @@
 # generate a license
 # requires fzf
 
-name="$USER"
+name="$(git config --global user.name)"
 year="$(date "+%Y")"
 licenseDir="${XDG_DATA_DIR}/licenses"
 
