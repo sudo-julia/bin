@@ -18,6 +18,10 @@ main() {
     done
 
     chosen="$(echo "${!gitignores[@]}" | tr " " '\n' | fzf +m)"
+    if [[ ! "$chosen" ]]; then
+        exit 0
+    fi
+
     cp -i -- "${gitignores[$chosen]}" ./.gitignore
 }
 
