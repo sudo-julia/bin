@@ -2,41 +2,41 @@
 # run usbguard interactively to avoid typing two commands lol
 
 check_root() {
-	if (("$(id -u)" != 0)) || ! hash usbguard 2>/dev/null; then
-		print_error "Make sure 'usbguard' is installed and run this program as root."
-	fi
+  if (("$(id -u)" != 0)) || ! hash usbguard 2>/dev/null; then
+    print_error "Make sure 'usbguard' is installed and run this program as root."
+  fi
 }
 
 print_error() {
-	tput setaf 1
-	printf -- '[ERR] %s\n' "$1" >&2
-	tput sgr0
-	exit 1
+  tput setaf 1
+  printf -- '[ERR] %s\n' "$1" >&2
+  tput sgr0
+  exit 1
 }
 
 # TODO: (jam) add option to operate on multiple devices
 main() {
-	check_root
-	printf -- 'USB Devices:\n\n'
-	usbguard list-devices | cut -d'"' -f1-5 | sed 's/hash//'
-	printf -- '\n'
-	read -rp "Which device would you like to operate on? " device
-	read -rp "[a]llow, [b]lock, or [r]eject device? " operation
-	case "$operation" in
-	a | A | allow | Allow)
-		operation="allow-device"
-		;;
-	b | B | block | Block)
-		operation="block-device"
-		;;
-	r | R | reject | Reject)
-		operation="reject-device"
-		;;
-	*)
-		print_error "Please select an option between: [a]llow [b]lock [r]eject"
-		;;
-	esac
-	usbguard "${operation}" "${device}"
+  check_root
+  printf -- 'USB Devices:\n\n'
+  usbguard list-devices | cut -d'"' -f1-5 | sed 's/hash//'
+  printf -- '\n'
+  read -rp "Which device would you like to operate on? " device
+  read -rp "[a]llow, [b]lock, or [r]eject device? " operation
+  case "$operation" in
+  a | A | allow | Allow)
+    operation="allow-device"
+    ;;
+  b | B | block | Block)
+    operation="block-device"
+    ;;
+  r | R | reject | Reject)
+    operation="reject-device"
+    ;;
+  *)
+    print_error "Please select an option between: [a]llow [b]lock [r]eject"
+    ;;
+  esac
+  usbguard "${operation}" "${device}"
 }
 
 main

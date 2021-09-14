@@ -3,23 +3,23 @@
 # requires ffsend and a mail client
 
 usage() {
-	cat <<EOF
+  cat <<EOF
 Usage: sendfile <file> <recipient>
 EOF
-	exit 0
+  exit 0
 }
 
 sendfile() {
-	# upload a file to the ffsend service and email the link to a recipient
-	# $1 is file to send, $2 is the recipient
-	local subject="${1%.*}" # remove file extension
-	ffsend upload -acIqy "$1" | sed 's/^/URL: /' | mail -s "$subject" "$2"
+  # upload a file to the ffsend service and email the link to a recipient
+  # $1 is file to send, $2 is the recipient
+  local subject="${1%.*}" # remove file extension
+  ffsend upload -acIqy "$1" | sed 's/^/URL: /' | mail -s "$subject" "$2"
 }
 
 if (("$#" == 0)); then
-	usage
+  usage
 else
-	sendfile "$@"
+  sendfile "$@"
 fi
 
 exit 0

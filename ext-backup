@@ -15,113 +15,113 @@ logLocation="/tmp/ext-backup_$(date '+%s').log"
 USER_HOME="$(getent passwd "${SUDO_USER}" | cut -d':' -f6)"
 
 check_disk() {
-	# TODO: this section is finicky, make sure it responds properly
-	if lsblk -l | grep "/dev/mapper/${cryptDevice}" >/dev/null; then
-		cryptsetup open "${externalDrive}" "${cryptDevice}"
-		printf -- '%s\n' "'${externalDrive}' opened as '${cryptDevice}'"
-	else
-		printf -- '%s\n' "'${externalDrive}' already open as '${cryptDevice}'"
-	fi
+  # TODO: this section is finicky, make sure it responds properly
+  if lsblk -l | grep "/dev/mapper/${cryptDevice}" >/dev/null; then
+    cryptsetup open "${externalDrive}" "${cryptDevice}"
+    printf -- '%s\n' "'${externalDrive}' opened as '${cryptDevice}'"
+  else
+    printf -- '%s\n' "'${externalDrive}' already open as '${cryptDevice}'"
+  fi
 
-	if ! df | awk '{print $6}' | grep "${mountPoint}" >/dev/null; then
-		mount "/dev/mapper/${cryptDevice}" "${mountPoint}"
-		printf -- '%s\n' "'${cryptDevice}' mounted to ${mountPoint}"
-	elif [[ "$(df '/mnt' | awk 'NR==2 {print $1}')" == "/dev/mapper/${cryptDevice}" ]]; then
-		printf -- '%s\n' "'${cryptDevice}' already mounted to '${mountPoint}'"
-	else
-		unmount_close "'${mountPoint}' in use by another device"
-		exit 1
-	fi
+  if ! df | awk '{print $6}' | grep "${mountPoint}" >/dev/null; then
+    mount "/dev/mapper/${cryptDevice}" "${mountPoint}"
+    printf -- '%s\n' "'${cryptDevice}' mounted to ${mountPoint}"
+  elif [[ "$(df '/mnt' | awk 'NR==2 {print $1}')" == "/dev/mapper/${cryptDevice}" ]]; then
+    printf -- '%s\n' "'${cryptDevice}' already mounted to '${mountPoint}'"
+  else
+    unmount_close "'${mountPoint}' in use by another device"
+    exit 1
+  fi
 
-	printf -- '%s\n%s\n' "Disk successfully decrypted and mounted." "Ready for backup."
-	return 0
+  printf -- '%s\n%s\n' "Disk successfully decrypted and mounted." "Ready for backup."
+  return 0
 }
 
 check_root() {
-	# exit if user is not root
-	if (("$(id -u)" != 0)); then
-		print_errors "Run as root." "Cancelling operation."
-		exit 1
-	fi
+  # exit if user is not root
+  if (("$(id -u)" != 0)); then
+    print_errors "Run as root." "Cancelling operation."
+    exit 1
+  fi
 }
 
 sync_main() {
-	# sync user's "/home" and then "/var" and "/etc"
-	# if you want to add another dir, just provide it as an arg to sync_dirs
-	# TODO: make verbosity an option
-	if ! rsync -mapuc \
-		--exclude-from="${excludeFile}" \
-		--include-from="${includeFile}" \
-		--delay-updates \
-		--delete-delay \
-		--delete-excluded \
-		--ignore-existing \
-		--info=progress2 \
-		--log-file="${logLocation}" \
-		"${USER_HOME}" "${mountPoint}"; then
-		unmount_close "Syncing '${USER_HOME}' failed"
-		exit 4
-	else
-		printf -- '%s\n' "'/home' successfully synced"
-	fi
+  # sync user's "/home" and then "/var" and "/etc"
+  # if you want to add another dir, just provide it as an arg to sync_dirs
+  # TODO: make verbosity an option
+  if ! rsync -mapuc \
+    --exclude-from="${excludeFile}" \
+    --include-from="${includeFile}" \
+    --delay-updates \
+    --delete-delay \
+    --delete-excluded \
+    --ignore-existing \
+    --info=progress2 \
+    --log-file="${logLocation}" \
+    "${USER_HOME}" "${mountPoint}"; then
+    unmount_close "Syncing '${USER_HOME}' failed"
+    exit 4
+  else
+    printf -- '%s\n' "'/home' successfully synced"
+  fi
 
-	if ! sync_dirs "/etc" "/var"; then
-		unmount_close "Syncing '/etc' and/or '/var' failed"
-		exit 4
-	else
-		printf -- '%s\n' "'/etc' and '/var' successfully synced"
-	fi
-	return 0
+  if ! sync_dirs "/etc" "/var"; then
+    unmount_close "Syncing '/etc' and/or '/var' failed"
+    exit 4
+  else
+    printf -- '%s\n' "'/etc' and '/var' successfully synced"
+  fi
+  return 0
 }
 
 sync_dirs() {
-	# run through all given directories to copy them, ignoring temp files
-	while (("$#")); do
-		rsync -mapy \
-			--exclude={'*.cache','*cache/','*.tmp','*tmp/'} \
-			--delay-updates \
-			--delete-delay \
-			--delete-excluded \
-			--ignore-existing \
-			--info=progress2 \
-			--log-file="${logLocation}" \
-			"$1" "${mountPoint}"
-		shift
-	done
-	return 0
+  # run through all given directories to copy them, ignoring temp files
+  while (("$#")); do
+    rsync -mapy \
+      --exclude={'*.cache','*cache/','*.tmp','*tmp/'} \
+      --delay-updates \
+      --delete-delay \
+      --delete-excluded \
+      --ignore-existing \
+      --info=progress2 \
+      --log-file="${logLocation}" \
+      "$1" "${mountPoint}"
+    shift
+  done
+  return 0
 }
 
 print_errors() {
-	tput setaf 1
-	printf -- '[ERR] %s\n' "$*" >&2
-	tput sgr0
+  tput setaf 1
+  printf -- '[ERR] %s\n' "$*" >&2
+  tput sgr0
 }
 
 unmount_close() {
-	# unmount the external drive and close the LUKS container
-	if (($# == 1)); then
-		print_errors "Error: $1!"
-		read -rp "Unmount and close disk? [Y/n] " closeDisk
-		case "$closeDisk" in
-		y | Y)
-			:
-			;;
-		*)
-			printf -- '%s\n' "Leaving '${externalDrive}' decrypted and mounted."
-			exit 2
-			;;
-		esac
-	fi
-	umount "${mountPoint}"
-	cryptsetup close "${cryptDevice}"
-	return 0
+  # unmount the external drive and close the LUKS container
+  if (($# == 1)); then
+    print_errors "Error: $1!"
+    read -rp "Unmount and close disk? [Y/n] " closeDisk
+    case "$closeDisk" in
+    y | Y)
+      :
+      ;;
+    *)
+      printf -- '%s\n' "Leaving '${externalDrive}' decrypted and mounted."
+      exit 2
+      ;;
+    esac
+  fi
+  umount "${mountPoint}"
+  cryptsetup close "${cryptDevice}"
+  return 0
 }
 
 main() {
-	check_root
-	check_disk
-	sync_main
-	unmount_close
+  check_root
+  check_disk
+  sync_main
+  unmount_close
 }
 
 printf -- '%s\n' "BUSTED!!!!"

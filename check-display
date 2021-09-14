@@ -6,13 +6,13 @@ wallpapers="${HOME}/documents/pictures/wallpapers"
 
 # set up monitors and wallpapers
 if [[ "${connected}" == connected ]]; then
-	xrandr --output HDMI-0 --auto --above DP-0
-	feh --no-fehbg --bg-fill -- "${wallpapers}/desktop0.png" "${wallpapers}/desktop1.png"
+  xrandr --output HDMI-0 --auto --above DP-0
+  feh --no-fehbg --bg-fill -- "${wallpapers}/desktop0.png" "${wallpapers}/desktop1.png"
 elif [[ "${connected}" == disconnected ]]; then
-	xrandr --output HDMI-0 --off --auto
-	feh --no-fehbg --bg-fill -- "${wallpapers}/desktop1.png"
+  xrandr --output HDMI-0 --off --auto
+  feh --no-fehbg --bg-fill -- "${wallpapers}/desktop1.png"
 else
-	exit 1
+  exit 1
 fi
 
 # notifications

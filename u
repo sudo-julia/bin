@@ -28,7 +28,7 @@ update_system() {
     ":: Also update AUR packages? [Y/n] " \
     "sudo -u ${user} ${aur_helper} -Syua" \
     "Skipping AUR packages"
-  }
+}
 
 update_extras() {
   # update extra programs and non-arch package managers
@@ -85,15 +85,15 @@ update_pip() {
     cut -d' ' -f1 |
     xargs -r -n1 env pip install --user -U &&
     printf -- '\n%s\n' "Pip packages upgraded."
-      return 0
-    }
+  return 0
+}
 
-  update_vim_plugins() {
-    # set your vim plugin manager's commands here
-    printf -- 'Updating NeoVim plugins...\n'
-    sudo -u "${user}" nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
-    printf -- 'NeoVim plugins updated.\n'
-  }
+update_vim_plugins() {
+  # set your vim plugin manager's commands here
+  printf -- 'Updating NeoVim plugins...\n'
+  sudo -u "${user}" nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
+  printf -- 'NeoVim plugins updated.\n'
+}
 
 remove_orphans() {
   # remove orphaned pacman packages
@@ -104,8 +104,8 @@ remove_orphans() {
       ":: Remove orphan packages? [Y/n] " \
       "pacman -Rns --noconfirm $(pacman -Qdtq)" \
       "Leaving orphaned packages."
-        else
-          printf -- 'No orphaned packages.\n'
+  else
+    printf -- 'No orphaned packages.\n'
   fi
 }
 
@@ -115,12 +115,12 @@ clear_paccache() {
   paccache -dvk2
   read -rp ":: Clear pacman cache? [Y/n] " confirm
   case "$confirm" in
-    y | Y)
-      paccache -rvk2 && printf -- 'Pacman cache cleared.\n'
-      ;;
-    *)
-      printf -- 'Skipping pacman cache.\n'
-      ;;
+  y | Y)
+    paccache -rvk2 && printf -- 'Pacman cache cleared.\n'
+    ;;
+  *)
+    printf -- 'Skipping pacman cache.\n'
+    ;;
   esac
 }
 
@@ -132,55 +132,55 @@ check_last_date() {
       ":: Update extra programs? " \
       "update_extras" \
       "Skipping extra updates."
-        elif [[ -n "${last_date}" ]] && [[ ! -s "${last_date}" ]]; then
-          # if variable is set but file doesn't exist, create it
-          echo '0000-00-00' >"${last_date}"
-        elif [[ -s "${last_date}" ]]; then
-          # check date to see if it's been a week since the last update
-          # TODO: swap last_date and last_date_file
-          local last_date_file current_date next_date future_date
-          last_date_file="$(cat "${last_date}")"
-          current_date="$(date "+%Y-%m-%d")"
-          next_date="$(env python3 "${user_home}/bin/week_from.py" "${last_date_file}")"
-          future_date="$(env python3 "${user_home}/bin/week_from.py" "${current_date}")"
-          if (("${current_date//-/}" >= "${next_date//-/}")); then
-            update_extras "${current_date}" "${future_date}"
-          fi
-          fi
-        }
-
-      check_root() {
-        # exit program if not run as root
-        set -o pipefail
-        if (("$(id -u)" != 0)); then
-          tput setaf 1
-          printf -- 'Error! Run as root.\nCancelling...\n' >&2
-          tput sgr0
-          exit 1
-        fi
-      }
-
-    get_user_input() {
-      # get user confirmation for an action
-      # args are: 1 - prompt, 2 - action if yes, 3 - action if no
-      read -rp "$1" confirm
-      case "$confirm" in
-        y | Y)
-          $2
-          ;;
-        *)
-          printf -- '%s\n' "$3"
-          ;;
-      esac
-    }
-
-  print_pacdiff() {
-    # print out any pacnew files
-    if ((pacdiff_run == 0)) && [[ -s "/tmp/pacnew.out" ]]; then
-      printf -- '\nPacnew files:\n%s\n' "$(cat /tmp/pacnew.out)"
-      pacdiff_run=1
+  elif [[ -n "${last_date}" ]] && [[ ! -s "${last_date}" ]]; then
+    # if variable is set but file doesn't exist, create it
+    echo '0000-00-00' >"${last_date}"
+  elif [[ -s "${last_date}" ]]; then
+    # check date to see if it's been a week since the last update
+    # TODO: swap last_date and last_date_file
+    local last_date_file current_date next_date future_date
+    last_date_file="$(cat "${last_date}")"
+    current_date="$(date "+%Y-%m-%d")"
+    next_date="$(env python3 "${user_home}/bin/week_from.py" "${last_date_file}")"
+    future_date="$(env python3 "${user_home}/bin/week_from.py" "${current_date}")"
+    if (("${current_date//-/}" >= "${next_date//-/}")); then
+      update_extras "${current_date}" "${future_date}"
     fi
-  }
+  fi
+}
+
+check_root() {
+  # exit program if not run as root
+  set -o pipefail
+  if (("$(id -u)" != 0)); then
+    tput setaf 1
+    printf -- 'Error! Run as root.\nCancelling...\n' >&2
+    tput sgr0
+    exit 1
+  fi
+}
+
+get_user_input() {
+  # get user confirmation for an action
+  # args are: 1 - prompt, 2 - action if yes, 3 - action if no
+  read -rp "$1" confirm
+  case "$confirm" in
+  y | Y)
+    $2
+    ;;
+  *)
+    printf -- '%s\n' "$3"
+    ;;
+  esac
+}
+
+print_pacdiff() {
+  # print out any pacnew files
+  if ((pacdiff_run == 0)) && [[ -s "/tmp/pacnew.out" ]]; then
+    printf -- '\nPacnew files:\n%s\n' "$(cat /tmp/pacnew.out)"
+    pacdiff_run=1
+  fi
+}
 
 main() {
   check_root

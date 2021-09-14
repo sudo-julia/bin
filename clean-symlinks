@@ -5,17 +5,17 @@
 dir_excludes="\( -path ${HOME}/.mozilla -o -path ${HOME}/.local/share/Steam\)"
 
 remove_symlinks() {
-	# remove all broken symlinks
-	find "${HOME}" -xtype l -exec rm -v {} \;
+  # remove all broken symlinks
+  find "${HOME}" -xtype l -exec rm -v {} \;
 }
 
 log_symlinks() {
-	# log broken symlinks to a tmpfile
-	output="$(mktemp --suffix '.txt')"
-	find "${HOME}" -xtype l ! -exec test -e {} \; -print >"${output}" &&
-		printf -- '%s\n' "Symlinks output to ${output} for review."
-	printf -- '%s\n' "Exiting program without removing any symlinks."
-	exit 1
+  # log broken symlinks to a tmpfile
+  output="$(mktemp --suffix '.txt')"
+  find "${HOME}" -xtype l ! -exec test -e {} \; -print >"${output}" &&
+    printf -- '%s\n' "Symlinks output to ${output} for review."
+  printf -- '%s\n' "Exiting program without removing any symlinks."
+  exit 1
 }
 
 # find broken symlinks (won't work on OSX)
@@ -25,11 +25,11 @@ printf -- '%s' "Remove broken symlinks? [Y/n] "
 read -r remove
 case "$remove" in
 y | Y)
-	remove_symlinks
-	;;
+  remove_symlinks
+  ;;
 *)
-	log_symlinks
-	;;
+  log_symlinks
+  ;;
 esac
 
 exit 0

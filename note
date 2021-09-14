@@ -4,46 +4,46 @@
 set -e
 
 create_dir() {
-	if [[ ! -d "$1" ]]; then
-		mkdir -p -- "$1"
-	fi
+  if [[ ! -d "$1" ]]; then
+    mkdir -p -- "$1"
+  fi
 }
 
 create_note() {
   # FIX: expand to be used with list_notes
-	create_dir "$2"
-	if [[ "$#" -eq 3 ]]; then
-		"$1" -- "${2}/${3}"
-		exit 0
-	else
-		print_error "Not Implemented"
-		exit 4
-	fi
+  create_dir "$2"
+  if [[ "$#" -eq 3 ]]; then
+    "$1" -- "${2}/${3}"
+    exit 0
+  else
+    print_error "Not Implemented"
+    exit 4
+  fi
 }
 
 list_notes() {
-	declare -A notes
+  declare -A notes
 
-	# add all notes to an associate array with the filename as the key and full path as
-	# the value
-	for f in "$note_dir"/*; do
-		notes+=(["$(basename "$f")"]="$f")
-	done
+  # add all notes to an associate array with the filename as the key and full path as
+  # the value
+  for f in "$note_dir"/*; do
+    notes+=(["$(basename "$f")"]="$f")
+  done
 
-	to_edit="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m)"
-	# FIX: integrate this with create_note()
-	"$editor" -- "${notes[$to_edit]}"
+  to_edit="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m)"
+  # FIX: integrate this with create_note()
+  "$editor" -- "${notes[$to_edit]}"
 }
 
 print_error() {
-	tput setaf 1
-	printf -- '[ERR] %s\n' "$*" >&2
-	tput sgr0
-	exit 1
+  tput setaf 1
+  printf -- '[ERR] %s\n' "$*" >&2
+  tput sgr0
+  exit 1
 }
 
 usage() {
-	cat <<EOF
+  cat <<EOF
 Usage: note [<options>] [<name of note>]
 
 Options:
@@ -59,62 +59,62 @@ EOF
 }
 
 main() {
-	# handle arguments
-	ft="md"
-	note_dir="${HOME}/documents/personal/notes"
+  # handle arguments
+  ft="md"
+  note_dir="${HOME}/documents/personal/notes"
 
-	TEMP=$(getopt -o 'e:f:hl' -l 'filetype:,editor:,help,list,note-dir:' -n 'note' -- "$@")
-	eval set -- "$TEMP"
-	unset TEMP
+  TEMP=$(getopt -o 'e:f:hl' -l 'filetype:,editor:,help,list,note-dir:' -n 'note' -- "$@")
+  eval set -- "$TEMP"
+  unset TEMP
 
-	while true; do
-		case "$1" in
-		'-e' | '--editor')
-			editor="$2"
-			shift 2
-			continue
-			;;
-		'-f' | '--filetype')
-			ft="$2"
-			shift 2
-			continue
-			;;
-		'-h' | '--help')
-			usage
-			exit 0
-			;;
-		'-l' | '--list')
-			list_notes
-			exit 0
-			;;
-		'--note-dir')
-			note_dir="$2"
-			shift 2
-			continue
-			;;
-		'--')
-			shift
-			break
-			;;
-		*)
-			print_error "$2 is not a recognized argument."
-			exit 1
-			;;
-		esac
-	done
+  while true; do
+    case "$1" in
+    '-e' | '--editor')
+      editor="$2"
+      shift 2
+      continue
+      ;;
+    '-f' | '--filetype')
+      ft="$2"
+      shift 2
+      continue
+      ;;
+    '-h' | '--help')
+      usage
+      exit 0
+      ;;
+    '-l' | '--list')
+      list_notes
+      exit 0
+      ;;
+    '--note-dir')
+      note_dir="$2"
+      shift 2
+      continue
+      ;;
+    '--')
+      shift
+      break
+      ;;
+    *)
+      print_error "$2 is not a recognized argument."
+      exit 1
+      ;;
+    esac
+  done
 
   # set note name to YYYY-MM-DD if no name is provided
-	if [[ "$1" ]]; then
-		note_name="$1"
-	else
-		note_name="$(date -I)"
-	fi
+  if [[ "$1" ]]; then
+    note_name="$1"
+  else
+    note_name="$(date -I)"
+  fi
 
-	if [[ ! "$editor" ]]; then
-		print_error "No editor specified. Please set \$EDITOR or run again with --editor"
-	fi
+  if [[ ! "$editor" ]]; then
+    print_error "No editor specified. Please set \$EDITOR or run again with --editor"
+  fi
 
-	create_note "$editor" "$note_dir" "${note_name}.${ft}"
+  create_note "$editor" "$note_dir" "${note_name}.${ft}"
 }
 
 main "$@"

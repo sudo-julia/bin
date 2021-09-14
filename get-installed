@@ -3,11 +3,11 @@
 
 set -e
 if (("$(id -u)" == 0)); then
-	user_home="$(getent passwd "${SUDO_USER}" | cut -d':' -f6)"
-	user="${user_home:6}"
+  user_home="$(getent passwd "${SUDO_USER}" | cut -d':' -f6)"
+  user="${user_home:6}"
 else
-	user_home="${HOME}"
-	user="${USER}"
+  user_home="${HOME}"
+  user="${USER}"
 fi
 
 base_dir="${user_home}/documents/misc/installed"
@@ -15,49 +15,49 @@ current_date="$(date "+%Y%m%d")"
 new_dir="${base_dir}/${current_date}"
 
 get_installed() {
-	if [[ -n "${with_git}" ]]; then
-		if [[ ! -d "${base_dir}/.git" ]]; then
-			git init "${base_dir}"
-		fi
-	fi
+  if [[ -n "${with_git}" ]]; then
+    if [[ ! -d "${base_dir}/.git" ]]; then
+      git init "${base_dir}"
+    fi
+  fi
 
-	if [[ -d "${new_dir}" ]]; then
-		new_dir="${base_dir}/${current_date}-$(date '+%H:%M:%S')"
-	fi
+  if [[ -d "${new_dir}" ]]; then
+    new_dir="${base_dir}/${current_date}-$(date '+%H:%M:%S')"
+  fi
 
-	mkdir "${new_dir}" &&
-		pacman -Q >"${new_dir}/all"
-	cut -d' ' -f1 "${new_dir}/all" >"${new_dir}/no_version"
-	pacman -Qm | cut -d' ' -f1 >"${new_dir}/aur"
-	diff -y "${new_dir}/no_version" "${new_dir}/aur" |
-		awk '{print $2}' |
-		sed '/</d' >"${new_dir}/no_aur"
+  mkdir "${new_dir}" &&
+    pacman -Q >"${new_dir}/all"
+  cut -d' ' -f1 "${new_dir}/all" >"${new_dir}/no_version"
+  pacman -Qm | cut -d' ' -f1 >"${new_dir}/aur"
+  diff -y "${new_dir}/no_version" "${new_dir}/aur" |
+    awk '{print $2}' |
+    sed '/</d' >"${new_dir}/no_aur"
 
-	if [[ -n "${with_git}" ]]; then
-		(cd "${base_dir}" && git add . && git commit -m "${user} $(date '+%c')")
-	fi
+  if [[ -n "${with_git}" ]]; then
+    (cd "${base_dir}" && git add . && git commit -m "${user} $(date '+%c')")
+  fi
 
-	printf -- '%s %s\n' "Installed programs backed up to" "${new_dir}"
+  printf -- '%s %s\n' "Installed programs backed up to" "${new_dir}"
 }
 
 case "$1" in
 -g | --git)
-	with_git="ON"
-	get_installed
-	;;
+  with_git="ON"
+  get_installed
+  ;;
 -h | --help)
-	cat <<-EOF
+  cat <<-EOF
 		Usage:
 		  getInstalled [options] [dir]
 
 		OPTIONS
 		  -g, --git    Use git for storing history
 	EOF
-	exit 0
-	;;
+  exit 0
+  ;;
 *)
-	get_installed
-	;;
+  get_installed
+  ;;
 esac
 
 exit 0

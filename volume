@@ -9,8 +9,8 @@ volume="$(amixer -c 0 get Master | tail -n1 | awk '{print $4}' | tr -d '[]%')"
 mute="$(amixer -c 0 get Master | tail -n1 | awk '{print $6}' | tr -d '[]')"
 
 if [[ "$volume" == 0 || "$mute" == off ]]; then
-	dunstify -a "Volume" -u low -i audio-volume-muted -r "$msg_id" "Volume Muted"
+  dunstify -a "Volume" -u low -i audio-volume-muted -r "$msg_id" "Volume Muted"
 else
-	dunstify -a "Volume" -u low -i audio-volume-high -r "$msg_id" \
-		-h int:value:"$volume" "Volume: ${volume}%"
+  dunstify -a "Volume" -u low -i audio-volume-high -r "$msg_id" \
+    -h int:value:"$volume" "Volume: ${volume}%"
 fi

@@ -6,132 +6,132 @@
 version="1.3.2"
 
 preview() {
-	# make a temporary file, view it and remove it once viewed
-	local outputFile
-	[[ -s "$1" ]] || printError "'$1' does not exist."
+  # make a temporary file, view it and remove it once viewed
+  local outputFile
+  [[ -s "$1" ]] || printError "'$1' does not exist."
 
-	if [[ "${1:(-3)}" == pdf ]]; then
-		$pdfViewer "$1" &
-		return
-	fi
+  if [[ "${1:(-3)}" == pdf ]]; then
+    $pdfViewer "$1" &
+    return
+  fi
 
-	# set the output file based on if it'll be saved or not
-	if [[ "${preserve}" ]]; then
-		outputFile="${1%.*}.pdf"
-	else
-		outputFile="$(mktemp --suffix='.pdf')"
-	fi
-	trap 'rm -f ${outputFile}' EXIT
+  # set the output file based on if it'll be saved or not
+  if [[ "${preserve}" ]]; then
+    outputFile="${1%.*}.pdf"
+  else
+    outputFile="$(mktemp --suffix='.pdf')"
+  fi
+  trap 'rm -f ${outputFile}' EXIT
 
-	# convert and open the file
-	pandoc --quiet "$1" -o "${outputFile}" 2>/dev/null &&
-		$pdfViewer "${outputFile}" &
+  # convert and open the file
+  pandoc --quiet "$1" -o "${outputFile}" 2>/dev/null &&
+    $pdfViewer "${outputFile}" &
 
-	if [[ ! "$preserve" ]]; then
-		rm -f -- "${outputFile}"
-	fi
+  if [[ ! "$preserve" ]]; then
+    rm -f -- "${outputFile}"
+  fi
 }
 
 detectUrl() {
-	# detect if input is a url, return a filename
-	regex="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)"
-	if grep -Ei "$regex" <<<"$1" >/dev/null; then
-		getFile "$1"
-	else
-		echo "$1"
-	fi
+  # detect if input is a url, return a filename
+  regex="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)"
+  if grep -Ei "$regex" <<<"$1" >/dev/null; then
+    getFile "$1"
+  else
+    echo "$1"
+  fi
 
 }
 
 getFile() {
-	# download a file
-	local downloadedFile
-	if [[ "$preserve" ]]; then
-		# trim the url name to the specific file, and replace any extension with html
-		# this exists to remove html anchors from the filename
-		local tmp="${1##*/}"
-		downloadedFile="${tmp%.*}.html"
-		unset tmp
-	else
-		downloadedFile="$(mktemp --suffix='.html')"
-	fi
+  # download a file
+  local downloadedFile
+  if [[ "$preserve" ]]; then
+    # trim the url name to the specific file, and replace any extension with html
+    # this exists to remove html anchors from the filename
+    local tmp="${1##*/}"
+    downloadedFile="${tmp%.*}.html"
+    unset tmp
+  else
+    downloadedFile="$(mktemp --suffix='.html')"
+  fi
 
-	wget -q "$1" -O "${downloadedFile}"
-	trap 'rm -f ${downloadedFile}' EXIT
-	echo "${downloadedFile}"
+  wget -q "$1" -O "${downloadedFile}"
+  trap 'rm -f ${downloadedFile}' EXIT
+  echo "${downloadedFile}"
 }
 
 merge() {
-	# merge pdfs based on the order they're given as args
-	# TODO: (jam) use pdfunite
-	:
+  # merge pdfs based on the order they're given as args
+  # TODO: (jam) use pdfunite
+  :
 }
 
 main() {
-	checkDeps
+  checkDeps
 
-	# check for arguments and run preview() on every valid file given
-	parseArgs "$@"
+  # check for arguments and run preview() on every valid file given
+  parseArgs "$@"
 
-	# TODO: (jam) option to combine files into one pdf (pandoc -s)
-	# declare arrays for args and opts, sort provided arguments accordingly
-	declare -a args opts
-	for arg in "$@"; do
-		# remove pdfViewer from args
-		if [[ "${pdfViewer}" && "${arg}" == "${pdfViewer}" ]]; then
-			continue
-		fi
-		if [[ $arg == [-]* ]]; then
-			opts+=("$arg")
-		else
-			args+=("$arg")
-		fi
-	done
+  # TODO: (jam) option to combine files into one pdf (pandoc -s)
+  # declare arrays for args and opts, sort provided arguments accordingly
+  declare -a args opts
+  for arg in "$@"; do
+    # remove pdfViewer from args
+    if [[ "${pdfViewer}" && "${arg}" == "${pdfViewer}" ]]; then
+      continue
+    fi
+    if [[ $arg == [-]* ]]; then
+      opts+=("$arg")
+    else
+      args+=("$arg")
+    fi
+  done
 
-	if [[ ! "${pdfViewer}" ]]; then
-		pdfViewer="xdg-open"
-	fi
+  if [[ ! "${pdfViewer}" ]]; then
+    pdfViewer="xdg-open"
+  fi
 
-	# if edit flag is present, edit input files
-	if [[ "$edit" ]]; then
-		# TODO: (jam) implement detectUrl here
-		for f in "${args[@]}"; do
-			"$EDITOR" -- "$f"
-		done
-	fi
+  # if edit flag is present, edit input files
+  if [[ "$edit" ]]; then
+    # TODO: (jam) implement detectUrl here
+    for f in "${args[@]}"; do
+      "$EDITOR" -- "$f"
+    done
+  fi
 
-	# if the user provided files to operate on, iterate through them
-	if (("${#args[@]}" > 0)); then
-		for f in "${args[@]}"; do
-			preview "$(detectUrl "$f")" || printError "Cannot access file '${f}'"
-			shift
-		done
-		# otherwise, select files interactively
-	else
-		local preview_file
-		preview_file="$(find "." -type f | fzf +m)" || exit 0
-		preview "${preview_file}"
-	fi
+  # if the user provided files to operate on, iterate through them
+  if (("${#args[@]}" > 0)); then
+    for f in "${args[@]}"; do
+      preview "$(detectUrl "$f")" || printError "Cannot access file '${f}'"
+      shift
+    done
+    # otherwise, select files interactively
+  else
+    local preview_file
+    preview_file="$(find "." -type f | fzf +m)" || exit 0
+    preview "${preview_file}"
+  fi
 }
 
 checkDeps() {
-	# check dependencies
-	for com in fzf pandoc wget; do
-		hash "$com" 2>/dev/null || printError "$com needs to be installed to run pvw."
-	done
+  # check dependencies
+  for com in fzf pandoc wget; do
+    hash "$com" 2>/dev/null || printError "$com needs to be installed to run pvw."
+  done
 }
 
 printError() {
-	# print errors to stderr
-	tput setaf 1
-	printf -- '[ERR] %s\n' "$1" >&2
-	tput sgr0
-	exit 1
+  # print errors to stderr
+  tput setaf 1
+  printf -- '[ERR] %s\n' "$1" >&2
+  tput sgr0
+  exit 1
 }
 
 usage() {
-	# usage
-	cat <<EOF
+  # usage
+  cat <<EOF
 Usage: preview [<args>] [file|url]
 
 Arguments are:
@@ -145,53 +145,53 @@ Arguments are:
 Note:
     If providing a URL, be sure to prefix it with 'http[s]'.
 EOF
-	exit 0
+  exit 0
 }
 
 parseArgs() {
-	# parse arguments
-	TEMP="$(getopt -o 'ehkrv:' -l 'edit,help,keep,readme,version,viewer:' -n "pvw" -- "$@")"
-	eval set -- "$TEMP"
-	unset TEMP
+  # parse arguments
+  TEMP="$(getopt -o 'ehkrv:' -l 'edit,help,keep,readme,version,viewer:' -n "pvw" -- "$@")"
+  eval set -- "$TEMP"
+  unset TEMP
 
-	while true; do
-		case "$1" in
-		'-e' | '--edit')
-			edit=true
-			shift
-			continue
-			;;
-		'-h' | '--help')
-			usage
-			;;
-		'-k' | '--keep')
-			# TODO: (jam) change the location the pdf is stored to (opt arg?)
-			preserve=true
-			shift
-			continue
-			;;
-		'-r' | '--readme')
-			preview "./README.md"
-			exit 0
-			;;
-		'--version')
-			printf -- 'pvw v%s\n' "$version"
-			exit 0
-			;;
-		'-v' | '--viewer')
-			pdfViewer="$2"
-			shift 2
-			continue
-			;;
-		'--')
-			shift
-			break
-			;;
-		*)
-			printError "$2 is not a recognized argument"
-			;;
-		esac
-	done
+  while true; do
+    case "$1" in
+    '-e' | '--edit')
+      edit=true
+      shift
+      continue
+      ;;
+    '-h' | '--help')
+      usage
+      ;;
+    '-k' | '--keep')
+      # TODO: (jam) change the location the pdf is stored to (opt arg?)
+      preserve=true
+      shift
+      continue
+      ;;
+    '-r' | '--readme')
+      preview "./README.md"
+      exit 0
+      ;;
+    '--version')
+      printf -- 'pvw v%s\n' "$version"
+      exit 0
+      ;;
+    '-v' | '--viewer')
+      pdfViewer="$2"
+      shift 2
+      continue
+      ;;
+    '--')
+      shift
+      break
+      ;;
+    *)
+      printError "$2 is not a recognized argument"
+      ;;
+    esac
+  done
 }
 
 main "$@"

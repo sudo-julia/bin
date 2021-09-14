@@ -4,26 +4,25 @@
 gitignore_dir="${HOME}/templates/gitignore"
 
 main() {
-    if [[ ! -d "$gitignore_dir" ]]; then
-        echo "Cloning gitignore repository..."
-        git clone "https://github.com/github/gitignore" "$gitignore_dir" || exit 1
-        echo "gitignores cloned to $gitignore_dir"
-    fi
+  if [[ ! -d "$gitignore_dir" ]]; then
+    echo "Cloning gitignore repository..."
+    git clone "https://github.com/github/gitignore" "$gitignore_dir" || exit 1
+    echo "gitignores cloned to $gitignore_dir"
+  fi
 
-    declare -A gitignores
+  declare -A gitignores
 
-    # TODO: add support for other dirs in repo
-    for f in "$gitignore_dir"/*.gitignore; do
-        gitignores+=(["$(basename "$f")"]="$f")
-    done
+  # TODO: add support for other dirs in repo
+  for f in "$gitignore_dir"/*.gitignore; do
+    gitignores+=(["$(basename "$f" '.gitignore')"]="$f")
+  done
 
-    # TODO: remove .gitignore extension from options when selecting a file
-    chosen="$(echo "${!gitignores[@]}" | tr " " '\n' | fzf +m)"
-    if [[ ! "$chosen" ]]; then
-        exit 0
-    fi
+  chosen="$(echo "${!gitignores[@]}" | tr " " '\n' | fzf +m -i)"
+  if [[ ! "$chosen" ]]; then
+    exit 0
+  fi
 
-    cp -i -- "${gitignores[$chosen]}" ./.gitignore
+  cp -i -- "${gitignores[$chosen]}" ./.gitignore
 }
 
 main "$@"
