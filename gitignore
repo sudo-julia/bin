@@ -17,6 +17,7 @@ main() {
         gitignores+=(["$(basename "$f")"]="$f")
     done
 
+    # TODO: remove .gitignore extension from options when selecting a file
     chosen="$(echo "${!gitignores[@]}" | tr " " '\n' | fzf +m)"
     if [[ ! "$chosen" ]]; then
         exit 0

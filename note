@@ -2,14 +2,6 @@
 # create or edit a note file
 
 set -e
-if [[ "$EDITOR" ]]; then
-	editor="$EDITOR"
-else
-	editor=vim
-fi
-ft="md"
-note_name="$(date -I)"
-note_dir="${HOME}/documents/personal/notes"
 
 create_dir() {
 	if [[ ! -d "$1" ]]; then
@@ -18,14 +10,15 @@ create_dir() {
 }
 
 create_note() {
+  # FIX: expand to be used with list_notes
 	create_dir "$2"
-  if [[ "$#" -eq 3 ]]; then
-    "$1" -- "${2}/${3}"
-    exit 0
-  else
-    echo "Not Implemented"
-    exit 4
-  fi
+	if [[ "$#" -eq 3 ]]; then
+		"$1" -- "${2}/${3}"
+		exit 0
+	else
+		print_error "Not Implemented"
+		exit 4
+	fi
 }
 
 list_notes() {
@@ -51,62 +44,77 @@ print_error() {
 
 usage() {
 	cat <<EOF
-Usage: note [<args>]
+Usage: note [<options>] [<name of note>]
 
-Arguments are:
-    -e, --editor    Chose the editor to use (default \$EDITOR)
-    -f, --filetype  Set the filetype of the new note (defaults to markdown)
-    -h, --help      Display this help
-    -l, --list      List all existing notes and choose one to edit interactively
-    -n, --name      Set the name of the note
-    --note-dir      Directory to store the note in
+Options:
+    -e, --editor    Chose the editor to use. If omitted, use \$EDITOR.
+    -f, --filetype  Set the filetype of the new note. If ommited, use markdown.
+    -h, --help      Display this help.
+    -l, --list      List all existing notes and choose one to edit interactively.
+    --note-dir      Directory to store the note in.
+
+Args:
+    <name of note>  The name of the note. If ommited, today's date is used.
 EOF
 }
 
-# handle arguments
-TEMP=$(getopt -o 'e:f:hln:' -l 'filetype:,editor:,help,list,name:,note-dir:' -n 'note' -- "$@")
-eval set -- "$TEMP"
-unset TEMP
+main() {
+	# handle arguments
+	ft="md"
+	note_dir="${HOME}/documents/personal/notes"
 
-while true; do
-	case "$1" in
-	'-f' | '--filetype')
-		ft="$2"
-		shift 2
-		continue
-		;;
-	'-e' | '--editor')
-		editor="$2"
-		shift 2
-		continue
-		;;
-	'-h' | '--help')
-		usage
-		exit 0
-		;;
-	'-l' | '--list')
-		list_notes
-		exit 0
-		;;
-	'-n' | '--name')
-		note_name="$2"
-		shift 2
-		continue
-		;;
-	'--note-dir')
-		note_dir="$2"
-		shift 2
-		continue
-		;;
-	'--')
-		shift
-		break
-		;;
-	*)
-		print_error "$2 is not a recognized argument"
-		exit 1
-		;;
-	esac
-done
+	TEMP=$(getopt -o 'e:f:hl' -l 'filetype:,editor:,help,list,note-dir:' -n 'note' -- "$@")
+	eval set -- "$TEMP"
+	unset TEMP
 
-create_note "$editor" "$note_dir" "${note_name}.${ft}"
+	while true; do
+		case "$1" in
+		'-e' | '--editor')
+			editor="$2"
+			shift 2
+			continue
+			;;
+		'-f' | '--filetype')
+			ft="$2"
+			shift 2
+			continue
+			;;
+		'-h' | '--help')
+			usage
+			exit 0
+			;;
+		'-l' | '--list')
+			list_notes
+			exit 0
+			;;
+		'--note-dir')
+			note_dir="$2"
+			shift 2
+			continue
+			;;
+		'--')
+			shift
+			break
+			;;
+		*)
+			print_error "$2 is not a recognized argument."
+			exit 1
+			;;
+		esac
+	done
+
+  # set note name to YYYY-MM-DD if no name is provided
+	if [[ "$1" ]]; then
+		note_name="$1"
+	else
+		note_name="$(date -I)"
+	fi
+
+	if [[ ! "$editor" ]]; then
+		print_error "No editor specified. Please set \$EDITOR or run again with --editor"
+	fi
+
+	create_note "$editor" "$note_dir" "${note_name}.${ft}"
+}
+
+main "$@"
