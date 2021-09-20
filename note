@@ -3,54 +3,47 @@
 
 set -e
 
-create_dir() {
-  if [[ ! -d "$1" ]]; then
-    mkdir -p -- "$1"
-  fi
-}
-
 create_note() {
-  # FIX: expand to be used with list_notes
-  create_dir "$2"
-  if [[ "$#" -eq 3 ]]; then
-    "$1" -- "${2}/${3}"
-    exit 0
-  else
-    print_error "Not Implemented"
-    exit 4
-  fi
+	mkdir -p -- "$(dirname "$2")"
+	"$1" -- "${2}"
 }
 
-list_notes() {
-  declare -A notes
+select_note() {
+	# select a note from existing notes and return it
+	declare -A notes
 
-  # add all notes to an associate array with the filename as the key and full path as
-  # the value
-  for f in "$note_dir"/*; do
-    notes+=(["$(basename "$f")"]="$f")
-  done
+	# add all notes to an associate array with the filename as the key and full path as
+	# the value
+	for f in "$note_dir"/*; do
+		notes+=(["$(basename "$f")"]="$f")
+	done
 
-  to_edit="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m)"
-  # FIX: integrate this with create_note()
-  "$editor" -- "${notes[$to_edit]}"
+	selected_note="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m --prompt="$1")"
+	if [[ ! "$selected_note" ]]; then
+		echo "NO_SELECTION"
+	else
+		echo "${notes[$selected_note]}"
+	fi
 }
 
 print_error() {
-  tput setaf 1
-  printf -- '[ERR] %s\n' "$*" >&2
-  tput sgr0
-  exit 1
+	tput setaf 1
+	printf -- '[ERR] %s\n' "$*" >&2
+	tput sgr0
+	exit 1
 }
 
 usage() {
-  cat <<EOF
+	cat <<EOF
 Usage: note [<options>] [<name of note>]
 
 Options:
-    -e, --editor    Chose the editor to use. If omitted, use \$EDITOR.
+    -d, --delete    Delete an existing note
+    -e, --edit      Edit an existing note
     -f, --filetype  Set the filetype of the new note. If ommited, use markdown.
     -h, --help      Display this help.
     -l, --list      List all existing notes and choose one to edit interactively.
+    --editor        Chose the editor to use. If omitted, use \$EDITOR.
     --note-dir      Directory to store the note in.
 
 Args:
@@ -59,62 +52,83 @@ EOF
 }
 
 main() {
-  # handle arguments
-  ft="md"
-  note_dir="${HOME}/documents/personal/notes"
+	# handle arguments
+	if [[ "$EDITOR" ]]; then
+		editor="$EDITOR"
+	else
+		editor="vim"
+	fi
+	ft="md"
+	note_dir="${HOME}/documents/personal/notes"
 
-  TEMP=$(getopt -o 'e:f:hl' -l 'filetype:,editor:,help,list,note-dir:' -n 'note' -- "$@")
-  eval set -- "$TEMP"
-  unset TEMP
+	TEMP=$(getopt -o 'def:hl' -l 'delete,edit,editor:,filetype:,help,list,note-dir:' -n 'note' -- "$@")
+	eval set -- "$TEMP"
+	unset TEMP
 
-  while true; do
-    case "$1" in
-    '-e' | '--editor')
-      editor="$2"
-      shift 2
-      continue
-      ;;
-    '-f' | '--filetype')
-      ft="$2"
-      shift 2
-      continue
-      ;;
-    '-h' | '--help')
-      usage
-      exit 0
-      ;;
-    '-l' | '--list')
-      list_notes
-      exit 0
-      ;;
-    '--note-dir')
-      note_dir="$2"
-      shift 2
-      continue
-      ;;
-    '--')
-      shift
-      break
-      ;;
-    *)
-      print_error "$2 is not a recognized argument."
-      exit 1
-      ;;
-    esac
-  done
+	while true; do
+		case "$1" in
+		'-d' | '--delete')
+			delete=true
+			note_name="$(select_note "delete >")"
+			break
+			;;
+		'-e' | '--edit')
+			note_name="$(select_note "edit >")"
+			shift
+			continue
+			;;
+		'--editor')
+			editor="$2"
+			shift 2
+			continue
+			;;
+		'-f' | '--filetype')
+			ft="$2"
+			shift 2
+			continue
+			;;
+		'-h' | '--help')
+			usage
+			exit 0
+			;;
+		'--note-dir')
+			note_dir="$2"
+			shift 2
+			continue
+			;;
+		'--')
+			shift
+			break
+			;;
+		*)
+			print_error "$2 is not a recognized argument."
+			exit 1
+			;;
+		esac
+	done
 
-  # set note name to YYYY-MM-DD if no name is provided
-  if [[ "$1" ]]; then
-    note_name="$1"
-  else
-    note_name="$(date -I)"
+	# set note name to YYYY-MM-DD if no name is provided
+	if [[ ! "$note_name" ]]; then
+		if [[ "$1" ]]; then
+			note_name="$1"
+		else
+			note_name="$(date -I)"
+		fi
+		note_name="${note_dir}/${note_name}.${ft}"
+	fi
+
+  if [[ "$note_name" == NO_SELECTION ]]; then
+    # exit if no note was selected
+    echo "No selection, exiting."
+    exit 0
   fi
 
-  if [[ ! "$editor" ]]; then
-    print_error "No editor specified. Please set \$EDITOR or run again with --editor"
-  fi
-
-  create_note "$editor" "$note_dir" "${note_name}.${ft}"
+	if [[ "$delete" ]]; then
+		rm -- "$note_name" &&
+			echo "Deleted '$note_name'"
+	else
+		create_note "$editor" "$note_name"
+	fi
 }
 
 main "$@"
