@@ -4,51 +4,52 @@
 
 name="$(git config --global user.name)"
 year="$(date "+%Y")"
-licenseDir="${XDG_DATA_DIR}/licenses"
+license_dir="${XDG_DATA_DIR}/licenses"
 
-downloadLicenses() {
+download_licenses() {
 	# Apache-2.0
-	wget -q "https://www.apache.org/licenses/LICENSE-2.0.txt" -O "${licenseDir}/Apache-2.0"
+	wget -q "https://www.apache.org/licenses/LICENSE-2.0.txt" -O "${license_dir}/Apache-2.0"
 	# GPL-3.0
-	wget -q "https://mit-license.org/license.txt" -O "${licenseDir}/GPL-3.0"
+	wget -q "https://mit-license.org/license.txt" -O "${license_dir}/GPL-3.0"
 	# MIT
-	wget -q "https://mit-license.org/license.txt" -O "${licenseDir}/MIT"
+	wget -q "https://mit-license.org/license.txt" -O "${license_dir}/MIT"
 }
 
-formatApache2() {
+format_apache2() {
 	sed -i "s/\[yyyy\]/${year}/; s/\[name of copyright owner\]/${name}/" "$1"
 }
 
-formatGPL3() {
-	head -- "${licenseDir}/GPL-3.0" | sed "s/(C)/(C) ${year} ${name}/" >/tmp/GPL3.tmp
-	tail -n+10 -- "${licenseDir}/GPL-3.0" >>/tmp/GPL3.tmp
+format_gpl3() {
+	head -- "${license_dir}/GPL-3.0" | sed "s/(C)/(C) ${year} ${name}/" >/tmp/GPL3.tmp
+	tail -n+10 -- "${license_dir}/GPL-3.0" >>/tmp/GPL3.tmp
 	mv -- /tmp/GPL3.tmp "$1"
 }
 
-formatMIT() {
+format_mit() {
+    # FIX: name not inserting
 	sed -ir "s/[0-9]{4}/${year} ${name}/" "$1"
 }
 
-pickLicense() {
-	if find "$licenseDir" -prune -type d -empty | grep -q '^'; then
-		mkdir -p -- "${licenseDir}"
-		downloadLicenses
+pick_license() {
+	if find "$license_dir" -prune -type d -empty | grep -q '^'; then
+		mkdir -p -- "${license_dir}"
+		download_licenses
 	fi
-	license="$(find "${licenseDir}" -type f -printf "%f\n" | fzf +m --height=15%)"
+	license="$(find "${license_dir}" -type f -printf "%f\n" | fzf +m --height=15%)"
 	case "$license" in
 	Apache-2.0)
-		cp -f -- "${licenseDir}/${license}" ./LICENSE
-		formatApache2 "./LICENSE"
+		cp -f -- "${license_dir}/${license}" ./LICENSE
+		format_apache2 "./LICENSE"
 		;;
 	GPL-3.0)
-		cp -f -- "${licenseDir}/${license}" ./LICENSE
-		formatGPL3 "./LICENSE"
+		cp -f -- "${license_dir}/${license}" ./LICENSE
+		format_gpl3 "./LICENSE"
 		;;
 	MIT)
-		cp -f -- "${licenseDir}/${license}" ./LICENSE
-		formatMIT "./LICENSE"
+		cp -f -- "${license_dir}/${license}" ./LICENSE
+		format_mit "./LICENSE"
 		;;
 	esac
 }
 
-pickLicense
+pick_license

@@ -2,6 +2,7 @@
 # update pacman mirrors with reflector
 
 echo "Updating mirrors..."
+
 sudo reflector -a 2 -c us -f 15 -l 15 -n 15 -p https --save /etc/pacman.d/mirrorlist 2>/dev/null &&
 	sudo rm -f /etc/pacman.d/mirrorlist.pacnew &&
 	echo "Mirrors updated."

@@ -18,7 +18,7 @@ select_note() {
 		notes+=(["$(basename "$f")"]="$f")
 	done
 
-	selected_note="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m --prompt="$1")"
+	selected_note="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m --ansi --prompt="$1" --preview="bat $note_dir/{}")"
 	if [[ ! "$selected_note" ]]; then
 		echo "NO_SELECTION"
 	else
@@ -42,7 +42,6 @@ Options:
     -e, --edit      Edit an existing note
     -f, --filetype  Set the filetype of the new note. If ommited, use markdown.
     -h, --help      Display this help.
-    -l, --list      List all existing notes and choose one to edit interactively.
     --editor        Chose the editor to use. If omitted, use \$EDITOR.
     --note-dir      Directory to store the note in.
 
@@ -61,7 +60,7 @@ main() {
 	ft="md"
 	note_dir="${HOME}/documents/personal/notes"
 
-	TEMP=$(getopt -o 'def:hl' -l 'delete,edit,editor:,filetype:,help,list,note-dir:' -n 'note' -- "$@")
+	TEMP=$(getopt -o 'def:h' -l 'delete,edit,editor:,filetype:,help,note-dir:' -n 'note' -- "$@")
 	eval set -- "$TEMP"
 	unset TEMP
 
@@ -69,11 +68,11 @@ main() {
 		case "$1" in
 		'-d' | '--delete')
 			delete=true
-			note_name="$(select_note "delete >")"
+			note_name="$(select_note "delete > ")"
 			break
 			;;
 		'-e' | '--edit')
-			note_name="$(select_note "edit >")"
+			note_name="$(select_note "edit > ")"
 			shift
 			continue
 			;;

@@ -44,6 +44,7 @@ update_extras() {
   update_luarocks
   remove_orphans
   clear_paccache
+  "${user_home}/bin/update-mirrors"
   "${user_home}/bin/get-installed"
   if [[ "$#" ]]; then
     echo "$1" >"${user_home}/bin/.last_date"
