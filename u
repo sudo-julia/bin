@@ -67,13 +67,13 @@ update_luarocks() {
 
 update_pip() {
   # get the python version
-  pythonVer="$(env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b')"
+  python_ver="$(env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b')"
   # set the output location for installed packages at runtime
-  outputLoc="${HOME}/.local/lib/${pythonVer}/installed/$(date +'%Y-%m-%dT%H:%M:%S')"
+  output_loc="${HOME}/.local/lib/${python_ver}/installed/$(date +'%Y-%m-%dT%H:%M:%S')"
 
   # checks if output folder exists by removing the filename with substring extraction
-  if [[ ! -d "${outputLoc:0:-20}" ]]; then
-    mkdir "${outputLoc:0:-20}"
+  if [[ ! -d "${output_loc:0:-20}" ]]; then
+    mkdir "${output_loc:0:-20}"
   fi
 
   # upgrade pip packages by listing and filtering outdated packages, then
@@ -81,7 +81,7 @@ update_pip() {
   printf -- '%s\n' "Upgrading pip packages..."
   env pip list --user -o |
     grep -v '\^-e' |
-    tee "${outputLoc} " |
+    tee "${output_loc} " |
     grep -Ev 'sdist|--|Latest\s' |
     cut -d' ' -f1 |
     xargs -r -n1 env pip install --user -U &&
