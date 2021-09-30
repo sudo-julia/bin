@@ -1,28 +1,52 @@
-#!/usr/bin/bash
+#!/usr/bin/env python3
 # select a gitignore for the current directory
+from os import getenv
+from pathlib import Path
+import subprocess
+from shutil import copy
+from tempfile import NamedTemporaryFile
 
-gitignore_dir="${HOME}/templates/gitignore"
 
-main() {
-  if [[ ! -d "$gitignore_dir" ]]; then
-    echo "Cloning gitignore repository..."
-    git clone "https://github.com/github/gitignore" "$gitignore_dir" || exit 1
-    echo "gitignores cloned to $gitignore_dir"
-  fi
+def main():
+    """select a gitignore"""
+    gitignore_dir = Path(f"{getenv('HOME')}/templates/gitignore")
+    try:
+        if not gitignore_dir.exists():
+            print("Cloning gitignore repository...")
+            subprocess.run(
+                ["git", "clone" "https://github.com/github/gitignore"], check=True
+            )
+            print(f"gitignores cloned to '{gitignore_dir}'")
+    except PermissionError:
+        raise NotImplementedError
+    except subprocess.CalledProcessError:
+        raise NotImplementedError
 
-  declare -A gitignores
+    gitignores = {}
+    for file in gitignore_dir.glob("*.gitignore"):
+        file = str(file)
+        gitignores[file.rstrip(".gitignore")] = file
 
-  # TODO: add support for other dirs in repo
-  for f in "$gitignore_dir"/*.gitignore; do
-    gitignores+=(["$(basename "$f" '.gitignore')"]="$f")
-  done
+    tmpfile = NamedTemporaryFile(mode="w+")
+    try:
+        with open(tmpfile.name, "w+") as tmp:
+            for lang in gitignores:
+                tmp.write(lang)
+            # TODO: can tmpfile.name be switched to tmp?
+            chosen = subprocess.check_output(
+                f"cat {tmpfile.name} | fzf +m -i", shell=True
+            )
+    except PermissionError:
+        raise NotImplementedError
+    except subprocess.CalledProcessError:
+        # TODO: detect no selection vs failure
+        return 0
+    finally:
+        tmpfile.close()
 
-  chosen="$(echo "${!gitignores[@]}" | tr " " '\n' | fzf +m -i)"
-  if [[ ! "$chosen" ]]; then
-    exit 0
-  fi
+    copy(gitignores[chosen], "./.gitignore")
 
-  cp -i -- "${gitignores[$chosen]}" ./.gitignore
-}
 
-main "$@"
+if __name__ == "__main__":
+    raise NotImplementedError
+    main()

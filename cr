@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 # Compile and Run a c program
 # shellcheck disable=SC2086
 set -e
@@ -90,9 +90,6 @@ parse_args() {
       recompile=true
       shift
       continue
-      ;;
-    '-v' | '--verbose')
-      verbose=true
       ;;
     '--')
       # TODO: make sure that this works with args passed to any file

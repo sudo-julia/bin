@@ -41,6 +41,9 @@ get_installed() {
   printf -- '%s %s\n' "Installed programs backed up to" "${new_dir}"
 }
 
+echo "CANNOT USE YET"
+exit 1
+
 case "$1" in
 -g | --git)
   with_git="ON"

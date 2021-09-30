@@ -27,8 +27,8 @@ def select_note(note_dir, prompt):
     for note in Path(note_dir).glob("*"):
         notes[str(Path(note).parent)] = note
 
+    tmpfile = NamedTemporaryFile(mode="w+")
     try:
-        tmpfile = NamedTemporaryFile(mode="w+")
         with open(tmpfile.name, "w+") as tmp:
             # add note options to tmpfile for piping
             for note in notes:
@@ -40,6 +40,8 @@ def select_note(note_dir, prompt):
     except subprocess.CalledProcessError as err:
         # TODO: detect if failure somewhere OR user just didn't pick an option
         raise NotImplementedError from err
+    else:
+        tmpfile.close()
 
     return str(selected_note)
 

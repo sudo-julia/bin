@@ -1,8 +1,6 @@
 #!/bin/sh
 # list and offer to remove all broken symlinks recursing from your current dir
 
-dir_excludes="\( -path ${HOME}/.mozilla -o -path ${HOME}/.local/share/Steam\)"
-
 remove_symlinks() {
   # remove all broken symlinks
   find "${HOME}" -xtype l -exec rm -v {} \;
