@@ -119,5 +119,7 @@ Arguments are:
 EOF
 }
 
+echo "NOT WORKING"
+exit 1
 main "$@"
 exit 0

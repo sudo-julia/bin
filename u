@@ -1,13 +1,5 @@
 #!/bin/sh
-# update system on arch, calls aur sep w extra util for aux programs (date-based) at end
-# requires informant, pacman-contrib and either paru or yay
-set -o pipefail
-
-# set this to paru or yay
-aur_helper="yay"
-
-# counter for if pacdiff has been run yet
-pacdiff_run=0 # dont change this
+# update system on FreeBSD
 
 # get the current user to execute commands as
 user="${SUDO_USER}"
@@ -15,38 +7,24 @@ user="${SUDO_USER}"
 # find the user's home dir for script locations
 user_home="$(getent passwd "${SUDO_USER}" | cut -d':' -f6)"
 
-# if you want extra updates to run on a timer, add a file to this line
-last_date="${user_home}/bin/.last_date"
-
 update_system() {
   # run the main update
   set -e
-  informant check
-  pacman -Syu
-  pacdiff -o >/tmp/pacnew.out
-  get_user_input \
-    ":: Also update AUR packages? [Y/n] " \
-    "sudo -u ${user} ${aur_helper} -Syua" \
-    "Skipping AUR packages"
+  pkg update
+  pkg upgrade
 }
 
 update_extras() {
   # update extra programs and non-arch package managers
   # if you don't want to use any of these, simply delete or comment-out the line
-  if [[ -s "${user_home}/bin/upgrade-zinit" ]]; then
-    sudo -u "${user}" zsh "${user_home}/bin/upgrade-zinit"
-  fi
   if hash tldr >/dev/null; then
     sudo -u "${user}" /usr/bin/env tldr --update |
       sed 's/ cache/ tldr cache/'
   fi
   update_vim_plugins
   update_luarocks
-  remove_orphans
-  clear_paccache
-  "${user_home}/bin/update-mirrors"
   "${user_home}/bin/get-installed"
-  if [[ "$#" ]]; then
+  if [ "$#" ]; then
     echo "$1" >"${user_home}/bin/.last_date"
     printf -- '\nNext full update will run after %s.\n' "$2"
   fi
@@ -54,7 +32,7 @@ update_extras() {
 
 update_luarocks() {
   # update luarocks packages
-  if (($(luarocks list --outdated | wc -l) <= 4)); then
+  if [ "$(luarocks list --outdated | wc -l)" -le 4 ]; then
     printf -- 'No luarocks package to upgrade.\n'
     return
   fi
@@ -67,13 +45,15 @@ update_luarocks() {
 
 update_pip() {
   # get the python version
-  pythonVer="$(env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b')"
+  python_ver="$(env pip --version | grep -Eo 'python[2-3]\.\b([0-9]|1[0-2])\b')"
   # set the output location for installed packages at runtime
-  outputLoc="${HOME}/.local/lib/${pythonVer}/installed/$(date +'%Y-%m-%dT%H:%M:%S')"
+  output_loc="${HOME}/.local/lib/${python_ver}/installed/$(date +'%Y-%m-%dT%H:%M:%S')"
 
   # checks if output folder exists by removing the filename with substring extraction
-  if [[ ! -d "${outputLoc:0:-20}" ]]; then
-    mkdir "${outputLoc:0:-20}"
+  output_parent="$(echo "$output_loc" | cut -d'/' -f1-7)"
+  # TODO: account for /usr/home
+  if [ ! -d "$output_parent" ]; then
+    mkdir "$output_parent"
   fi
 
   # upgrade pip packages by listing and filtering outdated packages, then
@@ -81,7 +61,7 @@ update_pip() {
   printf -- '%s\n' "Upgrading pip packages..."
   env pip list --user -o |
     grep -v '\^-e' |
-    tee "${outputLoc} " |
+    tee "${output_loc} " |
     grep -Ev 'sdist|--|Latest\s' |
     cut -d' ' -f1 |
     xargs -r -n1 env pip install --user -U &&
@@ -96,64 +76,9 @@ update_vim_plugins() {
   printf -- 'NeoVim plugins updated.\n'
 }
 
-remove_orphans() {
-  # remove orphaned pacman packages
-  if pacman -Qdtq >/dev/null; then
-    printf -- '\nOrphaned packages are:\n'
-    pacman -Qdt
-    get_user_input \
-      ":: Remove orphan packages? [Y/n] " \
-      "pacman -Rns --noconfirm $(pacman -Qdtq)" \
-      "Leaving orphaned packages."
-  else
-    printf -- 'No orphaned packages.\n'
-  fi
-}
-
-clear_paccache() {
-  # get_user_input isn't in use because it borks the cache-clearing
-  printf -- 'Checking pacman cache for old packages...\n'
-  paccache -dvk2
-  read -rp ":: Clear pacman cache? [Y/n] " confirm
-  case "$confirm" in
-  y | Y)
-    paccache -rvk2 && printf -- 'Pacman cache cleared.\n'
-    ;;
-  *)
-    printf -- 'Skipping pacman cache.\n'
-    ;;
-  esac
-}
-
-check_last_date() {
-  # check if it's time to run update_extras
-  if [[ -z "${last_date}" ]]; then
-    # if the user doesn't want to make last_date file
-    get_user_input \
-      ":: Update extra programs? " \
-      "update_extras" \
-      "Skipping extra updates."
-  elif [[ -n "${last_date}" ]] && [[ ! -s "${last_date}" ]]; then
-    # if variable is set but file doesn't exist, create it
-    echo '0000-00-00' >"${last_date}"
-  elif [[ -s "${last_date}" ]]; then
-    # check date to see if it's been a week since the last update
-    # TODO: swap last_date and last_date_file
-    local last_date_file current_date next_date future_date
-    last_date_file="$(cat "${last_date}")"
-    current_date="$(date "+%Y-%m-%d")"
-    next_date="$(env python3 "${user_home}/bin/week_from.py" "${last_date_file}")"
-    future_date="$(env python3 "${user_home}/bin/week_from.py" "${current_date}")"
-    if (("${current_date//-/}" >= "${next_date//-/}")); then
-      update_extras "${current_date}" "${future_date}"
-    fi
-  fi
-}
-
 check_root() {
   # exit program if not run as root
-  set -o pipefail
-  if (("$(id -u)" != 0)); then
+  if [ "$(id -u)" -eq 0 ]; then
     tput setaf 1
     printf -- 'Error! Run as root.\nCancelling...\n' >&2
     tput sgr0
@@ -164,7 +89,7 @@ check_root() {
 get_user_input() {
   # get user confirmation for an action
   # args are: 1 - prompt, 2 - action if yes, 3 - action if no
-  read -rp "$1" confirm
+  printf -- '%s' "$1"; read -r confirm
   case "$confirm" in
   y | Y)
     $2
@@ -175,19 +100,10 @@ get_user_input() {
   esac
 }
 
-print_pacdiff() {
-  # print out any pacnew files
-  if ((pacdiff_run == 0)) && [[ -s "/tmp/pacnew.out" ]]; then
-    printf -- '\nPacnew files:\n%s\n' "$(cat /tmp/pacnew.out)"
-    pacdiff_run=1
-  fi
-}
-
 main() {
   check_root
   update_system
   check_last_date
-  print_pacdiff
 }
 
 main

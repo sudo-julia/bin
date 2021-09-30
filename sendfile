@@ -12,11 +12,11 @@ EOF
 sendfile() {
   # upload a file to the ffsend service and email the link to a recipient
   # $1 is file to send, $2 is the recipient
-  local subject="${1%.*}" # remove file extension
+  subject="$(echo "$1" | cut -d'.' -f1)" # remove file extension
   ffsend upload -acIqy "$1" | sed 's/^/URL: /' | mail -s "$subject" "$2"
 }
 
-if (("$#" == 0)); then
+if [ "$#" -eq 0 ]; then
   usage
 else
   sendfile "$@"
