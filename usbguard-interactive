@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # run usbguard interactively to avoid typing two commands lol
 
 check_root() {

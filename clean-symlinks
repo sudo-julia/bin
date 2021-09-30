@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # list and offer to remove all broken symlinks recursing from your current dir
 
 dir_excludes="\( -path ${HOME}/.mozilla -o -path ${HOME}/.local/share/Steam\)"

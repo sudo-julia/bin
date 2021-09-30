@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Pacman INTeractive scripts
 # starting oneliners taken from the archwiki, this is just a wrapper
 

@@ -1,133 +1,102 @@
-#!/usr/bin/env bash
-# create or edit a note file
+#!/usr/bin/env python3
+"""create or edit a note file"""
+import argparse
+from datetime import date
+from os import getenv
+from pathlib import Path
+import subprocess
+from sys import stderr
+from tempfile import NamedTemporaryFile
 
-set -e
 
-create_note() {
-	mkdir -p -- "$(dirname "$2")"
-	"$1" -- "${2}"
-}
+def create_note(file, editor):
+    """create a note"""
+    try:
+        Path(file).parent.mkdir(parents=True)
+        subprocess.run([editor, "--", file], check=True)
+    except PermissionError as err:
+        raise PermissionError from err
+    except subprocess.CalledProcessError as err:
+        raise NotImplementedError from err
 
-select_note() {
-	# select a note from existing notes and return it
-	declare -A notes
 
-	# add all notes to an associate array with the filename as the key and full path as
-	# the value
-	for f in "$note_dir"/*; do
-		notes+=(["$(basename "$f")"]="$f")
-	done
+def select_note(note_dir, prompt):
+    """select a note"""
+    notes = {}
+    cmd = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{}'"
+    for note in Path(note_dir).glob("*"):
+        notes[str(Path(note).parent)] = note
 
-	selected_note="$(echo "${!notes[@]}" | tr " " '\n' | fzf +m --ansi --prompt="$1" --preview="bat $note_dir/{}")"
-	if [[ ! "$selected_note" ]]; then
-		echo "NO_SELECTION"
-	else
-		echo "${notes[$selected_note]}"
-	fi
-}
+    try:
+        tmpfile = NamedTemporaryFile(mode="w+")
+        with open(tmpfile.name, "w+") as tmp:
+            # add note options to tmpfile for piping
+            for note in notes:
+                tmp.write(note)
+            selected_note = subprocess.check_output(
+                cmd.format(tmpfile.name, prompt, note_dir),
+                shell=True,
+            )
+    except subprocess.CalledProcessError as err:
+        # TODO: detect if failure somewhere OR user just didn't pick an option
+        raise NotImplementedError from err
 
-print_error() {
-	tput setaf 1
-	printf -- '[ERR] %s\n' "$*" >&2
-	tput sgr0
-	exit 1
-}
+    return str(selected_note)
 
-usage() {
-	cat <<EOF
-Usage: note [<options>] [<name of note>]
 
-Options:
-    -d, --delete    Delete an existing note
-    -e, --edit      Edit an existing note
-    -f, --filetype  Set the filetype of the new note. If ommited, use markdown.
-    -h, --help      Display this help.
-    --editor        Chose the editor to use. If omitted, use \$EDITOR.
-    --note-dir      Directory to store the note in.
+def print_error(msg):
+    """print an error message"""
+    print(msg, file=stderr)
 
-Args:
-    <name of note>  The name of the note. If ommited, today's date is used.
-EOF
-}
 
-main() {
-	# handle arguments
-	if [[ "$EDITOR" ]]; then
-		editor="$EDITOR"
-	else
-		editor="vim"
-	fi
-	ft="md"
-	note_dir="${HOME}/documents/personal/notes"
+def main():
+    """main"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d", "--delete", action="store_true", help="Delete an existing note"
+    )
+    parser.add_argument(
+        "-e", "--edit", action="store_true", help="Edit an existing note"
+    )
+    parser.add_argument(
+        "-f",
+        "--filetype",
+        default="md",
+        help="Set the filetype of the new note (default: markdown)",
+    )
+    parser.add_argument(
+        "--editor",
+        default=getenv("EDITOR"),
+        help="Chose the editor to use. (default: $EDITOR)",
+    )
+    parser.add_argument(
+        "--note_dir",
+        default=f"{getenv('HOME')}/documents/notes",
+        help="Directory to store the note in",
+    )
+    parser.add_argument(
+        "note",
+        nargs="?",
+        default=str(date.today),
+        help="The name of the note (default: today's date)",
+    )
 
-	TEMP=$(getopt -o 'def:h' -l 'delete,edit,editor:,filetype:,help,note-dir:' -n 'note' -- "$@")
-	eval set -- "$TEMP"
-	unset TEMP
+    args = parser.parse_args()
+    if args.delete:
+        try:
+            note = select_note(args.note_dir, "delete >")
+            Path(note).unlink()
+            print(f"Deleted '{note}'")
+            return
+        except:
+            raise NotImplementedError
+    elif args.edit:
+        note = select_note(args.note_dir, "edit >")
+    else:
+        note = f"{args.note_dir}/{args.note}.{args.filetype}"
 
-	while true; do
-		case "$1" in
-		'-d' | '--delete')
-			delete=true
-			note_name="$(select_note "delete > ")"
-			break
-			;;
-		'-e' | '--edit')
-			note_name="$(select_note "edit > ")"
-			shift
-			continue
-			;;
-		'--editor')
-			editor="$2"
-			shift 2
-			continue
-			;;
-		'-f' | '--filetype')
-			ft="$2"
-			shift 2
-			continue
-			;;
-		'-h' | '--help')
-			usage
-			exit 0
-			;;
-		'--note-dir')
-			note_dir="$2"
-			shift 2
-			continue
-			;;
-		'--')
-			shift
-			break
-			;;
-		*)
-			print_error "$2 is not a recognized argument."
-			exit 1
-			;;
-		esac
-	done
+    create_note(note, args.editor)
 
-	# set note name to YYYY-MM-DD if no name is provided
-	if [[ ! "$note_name" ]]; then
-		if [[ "$1" ]]; then
-			note_name="$1"
-		else
-			note_name="$(date -I)"
-		fi
-		note_name="${note_dir}/${note_name}.${ft}"
-	fi
 
-  if [[ "$note_name" == NO_SELECTION ]]; then
-    # exit if no note was selected
-    echo "No selection, exiting."
-    exit 0
-  fi
-
-	if [[ "$delete" ]]; then
-		rm -- "$note_name" &&
-			echo "Deleted '$note_name'"
-	else
-		create_note "$editor" "$note_name"
-	fi
-}
-
-main "$@"
+if __name__ == "__main__":
+    main()

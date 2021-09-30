@@ -1,10 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # send lists of installed programs to dir specified by date
 
 set -e
-if (("$(id -u)" == 0)); then
+if [ "$(id -u)" -eq 0 ]; then
   user_home="$(getent passwd "${SUDO_USER}" | cut -d':' -f6)"
-  user="${user_home:6}"
+  # TODO: test this/adjust for the possibility of /usr/home
+  user="$(echo "$user_home" | cut -c7-)"
 else
   user_home="${HOME}"
   user="${USER}"
@@ -15,13 +16,13 @@ current_date="$(date "+%Y%m%d")"
 new_dir="${base_dir}/${current_date}"
 
 get_installed() {
-  if [[ -n "${with_git}" ]]; then
-    if [[ ! -d "${base_dir}/.git" ]]; then
+  if [ -n "${with_git}" ]; then
+    if [ ! -d "${base_dir}/.git" ]; then
       git init "${base_dir}"
     fi
   fi
 
-  if [[ -d "${new_dir}" ]]; then
+  if [ -d "${new_dir}" ]; then
     new_dir="${base_dir}/${current_date}-$(date '+%H:%M:%S')"
   fi
 
@@ -33,7 +34,7 @@ get_installed() {
     awk '{print $2}' |
     sed '/</d' >"${new_dir}/no_aur"
 
-  if [[ -n "${with_git}" ]]; then
+  if [ -n "${with_git}" ]; then
     (cd "${base_dir}" && git add . && git commit -m "${user} $(date '+%c')")
   fi
 

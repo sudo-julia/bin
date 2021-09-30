@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # change volume with notifications
 
 msg_id="991049"

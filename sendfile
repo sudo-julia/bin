@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # upload a file to ffsend, and email the link
 # requires ffsend and a mail client
 

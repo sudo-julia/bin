@@ -1,14 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # check if external display is plugged in, launch all utilities
 
 connected="$(xrandr | awk '/HDMI-0/ {print $2}')"
 wallpapers="${HOME}/documents/pictures/wallpapers"
 
 # set up monitors and wallpapers
-if [[ "${connected}" == connected ]]; then
+if [ "${connected}" = connected ]; then
   xrandr --output HDMI-0 --auto --above DP-0
   feh --no-fehbg --bg-fill -- "${wallpapers}/desktop0.png" "${wallpapers}/desktop1.png"
-elif [[ "${connected}" == disconnected ]]; then
+elif [ "${connected}" = disconnected ]; then
   xrandr --output HDMI-0 --off --auto
   feh --no-fehbg --bg-fill -- "${wallpapers}/desktop1.png"
 else

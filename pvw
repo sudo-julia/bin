@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # preview a pdf
 # depends on: pandoc, wget, fzf, poppler (for pdfunite)
 # Copyright (c) 2021 Julia

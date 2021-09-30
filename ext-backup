@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # back up /{etc,home,var} to a LUKS encrypted external drive
 
 # TODO: add options for progress bar, no output and verbose (current)

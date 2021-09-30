@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # format and lint a python file
 
 format_file() {

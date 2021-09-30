@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # The bulk of this code is taken from <wttr.in/:bash.function>
 # If you source this file, it will set WTTR_PARAMS as well as show weather.
 

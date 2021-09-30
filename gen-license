@@ -2,7 +2,10 @@
 # generate a license
 # requires fzf
 
-name="$(git config --global user.name)"
+name="$(git config user.name)"
+if [ ! "$name" ]; then
+    name="$USER"
+fi
 year="$(date "+%Y")"
 license_dir="${XDG_DATA_DIR}/licenses"
 
@@ -16,18 +19,17 @@ download_licenses() {
 }
 
 format_apache2() {
-	sed -i "s/\[yyyy\]/${year}/; s/\[name of copyright owner\]/${name}/" "$1"
+	perl -pi -e "s/\[yyyy\]/${year}/; s/\[name of copyright owner\]/${name}/" "$1"
 }
 
 format_gpl3() {
-	head -- "${license_dir}/GPL-3.0" | sed "s/(C)/(C) ${year} ${name}/" >/tmp/GPL3.tmp
+	head -- "${license_dir}/GPL-3.0" | perl -pe "s/(C)/(C) ${year} ${name}/" >/tmp/GPL3.tmp
 	tail -n+10 -- "${license_dir}/GPL-3.0" >>/tmp/GPL3.tmp
 	mv -- /tmp/GPL3.tmp "$1"
 }
 
 format_mit() {
-    # FIX: name not inserting
-	sed -ir "s/[0-9]{4}/${year} ${name}/" "$1"
+	perl -pi -e "s/[0-9]{4}/${year} ${name}/" "$1"
 }
 
 pick_license() {

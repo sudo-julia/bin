@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # update system on arch, calls aur sep w extra util for aux programs (date-based) at end
 # requires informant, pacman-contrib and either paru or yay
 set -o pipefail

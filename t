@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # manage todo list
 
 todo_dir="${HOME}/lib/todo"
