@@ -5,14 +5,14 @@ from datetime import date
 from os import getenv
 from pathlib import Path
 import subprocess
-from sys import stderr
+import sys
 from tempfile import NamedTemporaryFile
 
 
 def create_note(file, editor):
     """create a note"""
     try:
-        Path(file).parent.mkdir(parents=True)
+        Path(file).parent.mkdir(parents=True, exist_ok=True)
         subprocess.run([editor, "--", file], check=True)
     except PermissionError as err:
         raise PermissionError from err
@@ -23,24 +23,33 @@ def create_note(file, editor):
 def select_note(note_dir, prompt):
     """select a note"""
     notes = {}
-    cmd = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{}'"
+    selected_note = ""
+    cmd = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{{}}'"
+    # grab all files in note directory
     for note in Path(note_dir).glob("*"):
-        notes[str(Path(note).parent)] = note
+        note = Path(note)
+        if not note.is_file():
+            continue
+        notes[str(note.name)] = str(note.resolve())
 
+    # not using a context manager here as a personal preference, no more indents
     tmpfile = NamedTemporaryFile(mode="w+")
     try:
         with open(tmpfile.name, "w+") as tmp:
             # add note options to tmpfile for piping
             for note in notes:
-                tmp.write(note)
+                tmp.write(note + "\n")
+            tmp.seek(0)
             selected_note = subprocess.check_output(
                 cmd.format(tmpfile.name, prompt, note_dir),
                 shell=True,
             )
     except subprocess.CalledProcessError as err:
-        # TODO: detect if failure somewhere OR user just didn't pick an option
-        raise NotImplementedError from err
-    else:
+        # exit peacefully if the user doesn't select a note
+        if not selected_note:
+            sys.exit(0)
+        raise err
+    finally:
         tmpfile.close()
 
     return str(selected_note)
@@ -48,7 +57,7 @@ def select_note(note_dir, prompt):
 
 def print_error(msg):
     """print an error message"""
-    print(msg, file=stderr)
+    print(msg, file=sys.stderr)
 
 
 def main():
@@ -90,8 +99,8 @@ def main():
             Path(note).unlink()
             print(f"Deleted '{note}'")
             return
-        except:
-            raise NotImplementedError
+        except PermissionError as err:
+            raise PermissionError from err
     elif args.edit:
         note = select_note(args.note_dir, "edit >")
     else:
