@@ -1,7 +1,7 @@
 # homemade utilities
 
 This branch is for the ~/bin folder on my FreeBSD machine. All scripts are
-either POSIX compliant or run with a standard install of Python 3
+either POSIX compliant or run with a standard install of Python ^3.6
 
 - [`clean-symlinks`](./clean-symlinks):
   deletes broken symlinks

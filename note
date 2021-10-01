@@ -43,7 +43,7 @@ def select_note(note_dir, prompt):
             selected_note = subprocess.check_output(
                 cmd.format(tmpfile.name, prompt, note_dir),
                 shell=True,
-            )
+            ).decode(sys.stdout.encoding).strip()
     except subprocess.CalledProcessError as err:
         # exit peacefully if the user doesn't select a note
         if not selected_note:
@@ -52,7 +52,7 @@ def select_note(note_dir, prompt):
     finally:
         tmpfile.close()
 
-    return str(selected_note)
+    return notes[selected_note]
 
 
 def print_error(msg):
@@ -95,14 +95,14 @@ def main():
     args = parser.parse_args()
     if args.delete:
         try:
-            note = select_note(args.note_dir, "delete >")
+            note = select_note(args.note_dir, "delete > ")
             Path(note).unlink()
             print(f"Deleted '{note}'")
             return
         except PermissionError as err:
             raise PermissionError from err
     elif args.edit:
-        note = select_note(args.note_dir, "edit >")
+        note = select_note(args.note_dir, "edit > ")
     else:
         note = f"{args.note_dir}/{args.note}.{args.filetype}"
 

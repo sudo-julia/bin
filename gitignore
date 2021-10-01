@@ -2,8 +2,9 @@
 # select a gitignore for the current directory
 from os import getenv
 from pathlib import Path
+from shutil import Error, copy
 import subprocess
-from shutil import copy
+import sys
 from tempfile import NamedTemporaryFile
 
 
@@ -14,33 +15,37 @@ def main():
         if not gitignore_dir.exists():
             print("Cloning gitignore repository...")
             subprocess.run(
-                ["git", "clone" "https://github.com/github/gitignore"], check=True
+                ["git", "clone", "https://github.com/github/gitignore"], check=True
             )
             print(f"gitignores cloned to '{gitignore_dir}'")
-    except PermissionError:
-        raise NotImplementedError
-    except subprocess.CalledProcessError:
-        raise NotImplementedError
+    except PermissionError as err:
+        raise NotImplementedError from err
+    except subprocess.CalledProcessError as err:
+        raise NotImplementedError from err
 
     gitignores = {}
     for file in gitignore_dir.glob("*.gitignore"):
-        file = str(file)
-        gitignores[file.rstrip(".gitignore")] = file
+        # pylint: disable=bad-str-strip-call
+        gitignores[file.name.replace(".gitignore", "")] = str(file.resolve())
 
     tmpfile = NamedTemporaryFile(mode="w+")
+    chosen = ""
     try:
+        # add options to file to pipe into fzf
         with open(tmpfile.name, "w+") as tmp:
             for lang in gitignores:
-                tmp.write(lang)
-            # TODO: can tmpfile.name be switched to tmp?
+                tmp.write(lang + "\n")
+            tmp.seek(0)
+            # decode the output to a string and strip the newline
             chosen = subprocess.check_output(
                 f"cat {tmpfile.name} | fzf +m -i", shell=True
-            )
-    except PermissionError:
-        raise NotImplementedError
-    except subprocess.CalledProcessError:
-        # TODO: detect no selection vs failure
-        return 0
+            ).decode(sys.stdout.encoding).strip()
+    except PermissionError as err:
+        raise NotImplementedError from err
+    except subprocess.CalledProcessError as err:
+        if not chosen:
+            return
+        raise Error from err
     finally:
         tmpfile.close()
 
@@ -48,5 +53,4 @@ def main():
 
 
 if __name__ == "__main__":
-    raise NotImplementedError
     main()
