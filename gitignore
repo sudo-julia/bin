@@ -1,55 +1,97 @@
 #!/usr/bin/env python3
 # select a gitignore for the current directory
-from os import getenv
+# requires appdirs
 from pathlib import Path
-from shutil import Error, copy
+from shutil import copy
 import subprocess
 import sys
 from tempfile import NamedTemporaryFile
 
+try:
+    from appdirs import user_data_dir
 
-def main():
-    """select a gitignore"""
-    gitignore_dir = Path(f"{getenv('HOME')}/templates/gitignore")
+    GI_DIR = Path(user_data_dir("gitignore"))
+except ImportError:
+    from os import getenv
+
+    GI_DIR = Path(f"{getenv('HOME')}/templates/gitignore")
+
+
+def dir_yield(path: Path):
+    """recursively yield from all directories in the gitignore repo"""
+    for entry in path.iterdir():
+        if entry.is_dir() and not "git" in entry.name:
+            yield from dir_yield(entry.resolve())
+        elif not entry.name.endswith(".gitignore"):
+            continue
+        yield entry.resolve()
+
+
+def get_gitignores():
+    """download the gitignore repository if it doesn't exist"""
+    # TODO: handle case where dir exists but is incorrect/empty
     try:
-        if not gitignore_dir.exists():
+        if not GI_DIR.exists():
+            GI_DIR.mkdir(parents=True)
             print("Cloning gitignore repository...")
             subprocess.run(
-                ["git", "clone", "https://github.com/github/gitignore"], check=True
+                ["git", "clone", "https://github.com/github/gitignore", GI_DIR],
+                check=True,
             )
-            print(f"gitignores cloned to '{gitignore_dir}'")
+            print(f"gitignores cloned to '{GI_DIR}'")
+        return
     except PermissionError as err:
         raise NotImplementedError from err
     except subprocess.CalledProcessError as err:
         raise NotImplementedError from err
 
-    gitignores = {}
-    for file in gitignore_dir.glob("*.gitignore"):
-        # pylint: disable=bad-str-strip-call
-        gitignores[file.name.replace(".gitignore", "")] = str(file.resolve())
 
+def select_gitignore(options):
+    """interactively select a gitignore with fzf"""
     tmpfile = NamedTemporaryFile(mode="w+")
     chosen = ""
     try:
         # add options to file to pipe into fzf
         with open(tmpfile.name, "w+") as tmp:
-            for lang in gitignores:
+            for lang in options:
                 tmp.write(lang + "\n")
             tmp.seek(0)
             # decode the output to a string and strip the newline
-            chosen = subprocess.check_output(
-                f"cat {tmpfile.name} | fzf +m -i", shell=True
-            ).decode(sys.stdout.encoding).strip()
+            chosen = (
+                subprocess.check_output(f"cat {tmpfile.name} | fzf +m -i", shell=True)
+                .decode(sys.stdout.encoding)
+                .strip()
+            )
     except PermissionError as err:
         raise NotImplementedError from err
     except subprocess.CalledProcessError as err:
         if not chosen:
-            return
-        raise Error from err
+            sys.exit()
+        raise NotImplementedError from err
     finally:
         tmpfile.close()
+    return chosen
 
-    copy(gitignores[chosen], "./.gitignore")
+
+def main():
+    """select a gitignore"""
+    # dict comprehension where key is the filename w/o gitignore and value is file path
+    get_gitignores()
+    gitignores = {
+        f.name.replace(".gitignore", ""): f.resolve() for f in dir_yield(GI_DIR)
+    }
+
+    # use argument if one is provided, otherwise choose interactively
+    try:
+        chosen = sys.argv[1]
+    except IndexError:
+        chosen = select_gitignore(gitignores)
+
+    try:
+        copy(gitignores[chosen], "./.gitignore")
+    except KeyError:
+        print(f"'{chosen}' is not a valid gitignore type.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
