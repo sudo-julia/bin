@@ -82,7 +82,7 @@ def main():
     )
     parser.add_argument(
         "--note_dir",
-        default=f"{getenv('HOME')}/documents/notes",
+        default=f"{getenv('HOME')}/documents/personal/notes",
         help="Directory to store the note in",
     )
     parser.add_argument(
