@@ -12,3 +12,4 @@ markdownlint
 screenshot.sh
 sync-blog
 updateZinit.zsh
+*__pycache__*
