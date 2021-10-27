@@ -32,25 +32,26 @@ def select_note(note_dir, prompt):
             continue
         notes[str(note.name)] = str(note.resolve())
 
-    # not using a context manager here as a personal preference, no more indents
-    tmpfile = NamedTemporaryFile(mode="w+")
-    try:
-        with open(tmpfile.name, "w+") as tmp:
-            # add note options to tmpfile for piping
-            for note in notes:
-                tmp.write(note + "\n")
-            tmp.seek(0)
-            selected_note = subprocess.check_output(
-                cmd.format(tmpfile.name, prompt, note_dir),
-                shell=True,
-            ).decode(sys.stdout.encoding).strip()
-    except subprocess.CalledProcessError as err:
-        # exit peacefully if the user doesn't select a note
-        if not selected_note:
-            sys.exit(0)
-        raise err
-    finally:
-        tmpfile.close()
+    with NamedTemporaryFile(mode="w+") as tmpfile:
+        try:
+            with open(tmpfile.name, "w+", encoding="utf-8") as tmp:
+                # add note options to tmpfile for piping
+                for note in notes:
+                    tmp.write(note + "\n")
+                tmp.seek(0)
+                selected_note = (
+                    subprocess.check_output(
+                        cmd.format(tmpfile.name, prompt, note_dir),
+                        shell=True,
+                    )
+                    .decode(sys.stdout.encoding)
+                    .strip()
+                )
+        except subprocess.CalledProcessError as err:
+            # exit peacefully if the user doesn't select a note
+            if not selected_note:
+                sys.exit(0)
+            raise err
 
     return notes[selected_note]
 

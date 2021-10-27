@@ -10,8 +10,8 @@ main() {
 
   # set outfile if the user did not set it with an arg
   if [ -z "${outfile+x}" ]; then
-    mkdir -p "./bin"
-    outfile="./bin/${1:0:-2}"
+    mkdir -p "./build"
+    outfile="./build/${1:0:-2}"
   fi
 
   # FIXME: test this before integrating

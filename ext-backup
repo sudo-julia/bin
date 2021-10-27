@@ -4,8 +4,8 @@
 # TODO: add options for progress bar, no output and verbose (current)
 # TODO: make include and exclude patterns as variables
 # TODO: allow these to be passed as arguments
-includeFile="/home/jam/bin/.rInclude"
-excludeFile="/home/jam/bin/.rExclude"
+includeFile="${HOME}/bin/.rInclude"
+excludeFile="${HOME}/bin/.rExclude"
 
 cryptDevice="external"
 externalDrive="/dev/sdc"
@@ -49,14 +49,14 @@ sync_main() {
   # sync user's "/home" and then "/var" and "/etc"
   # if you want to add another dir, just provide it as an arg to sync_dirs
   # TODO: make verbosity an option
-  if ! rsync -mapuc \
+  if ! rsync -acmuz \
+    --info=progress2 \
     --exclude-from="${excludeFile}" \
     --include-from="${includeFile}" \
     --delay-updates \
     --delete-delay \
     --delete-excluded \
     --ignore-existing \
-    --info=progress2 \
     --log-file="${logLocation}" \
     "${USER_HOME}" "${mountPoint}"; then
     unmount_close "Syncing '${USER_HOME}' failed"
@@ -78,12 +78,15 @@ sync_dirs() {
   # run through all given directories to copy them, ignoring temp files
   while (("$#")); do
     rsync -mapy \
-      --exclude={'*.cache','*cache/','*.tmp','*tmp/'} \
+      --exclude='*.cache' \
+      --exclude='*cache/' \
+      --exclude='*.tmp' \
+      --exclude='*tmp/' \
+      --info=progress2 \
       --delay-updates \
       --delete-delay \
       --delete-excluded \
       --ignore-existing \
-      --info=progress2 \
       --log-file="${logLocation}" \
       "$1" "${mountPoint}"
     shift
@@ -124,5 +127,5 @@ main() {
   unmount_close
 }
 
-printf -- '%s\n' "BUSTED!!!!"
-exit 4
+main
+exit 0
