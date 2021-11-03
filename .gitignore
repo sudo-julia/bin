@@ -9,6 +9,7 @@ extras/
 geckodriver
 git-prompt.sh
 markdownlint
+neovim-node-host
 screenshot.sh
 sync-blog
 updateZinit.zsh

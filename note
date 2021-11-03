@@ -20,18 +20,29 @@ def create_note(file, editor):
         raise NotImplementedError from err
 
 
-def select_note(note_dir, prompt):
-    """select a note"""
+def get_notes(note_dir):
+    """return a dict of all notes in the note_dir {note_name: note_location}"""
     notes = {}
-    selected_note = ""
-    cmd = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{{}}'"
-    # grab all files in note directory
     for note in Path(note_dir).glob("*"):
         note = Path(note)
         if not note.is_file():
             continue
-        notes[str(note.name)] = str(note.resolve())
+        notes[note.name] = str(note.resolve())
+    return notes
 
+
+def list_notes(note_dir):
+    """list all available notes"""
+    notes = get_notes(note_dir)
+    for note in notes:
+        print(note)
+
+
+def select_note(note_dir, prompt):
+    """select a note"""
+    notes = get_notes(note_dir)
+    selected_note = ""
+    cmd = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{{}}'"
     with NamedTemporaryFile(mode="w+") as tmpfile:
         try:
             with open(tmpfile.name, "w+", encoding="utf-8") as tmp:
@@ -64,10 +75,11 @@ def print_error(msg):
 def main():
     """main"""
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+    actions = parser.add_mutually_exclusive_group()
+    actions.add_argument(
         "-d", "--delete", action="store_true", help="Delete an existing note"
     )
-    parser.add_argument(
+    actions.add_argument(
         "-e", "--edit", action="store_true", help="Edit an existing note"
     )
     parser.add_argument(
@@ -80,6 +92,9 @@ def main():
         "--editor",
         default=getenv("EDITOR"),
         help="Chose the editor to use. (default: $EDITOR)",
+    )
+    actions.add_argument(
+        "-l", "--list", action="store_true", help="List all created notes"
     )
     parser.add_argument(
         "--note_dir",
@@ -104,6 +119,9 @@ def main():
             raise PermissionError from err
     elif args.edit:
         note = select_note(args.note_dir, "edit > ")
+    elif args.list:
+        list_notes(args.note_dir)
+        raise SystemExit
     else:
         note = f"{args.note_dir}/{args.note}.{args.filetype}"
 

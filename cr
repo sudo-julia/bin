@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 # Compile and Run a c program
 # shellcheck disable=SC2086
+# TODO: add a "norun" option
 set -e
 
 main() {
@@ -13,15 +14,6 @@ main() {
     mkdir -p "./build"
     outfile="./build/${1:0:-2}"
   fi
-
-  # FIXME: test this before integrating
-  # set default flags if none were passed
-  #if [ -z "${noflags+x}" ]; then
-  #    flags=""
-  #elif [ -z "${flags+x}" ]; then
-  #    # NOTE: should outfile be separate?
-  #	flags="-Wall -Werror -O2 -std=c99 -pedantic -o ${outfile}"
-  #fi
 
   # FIXME: make sure this uses arguments on a precompiled version
   if [ "${outfile}" -nt "$1" ] && [ -z "${recompile+x}" ]; then
@@ -62,11 +54,6 @@ parse_args() {
 
   while true; do
     case "$1" in
-    '-c' | '--compiler-flags')
-      flags="$2"
-      shift 2
-      continue
-      ;;
     '-h' | '--help')
       usage
       exit 0
@@ -95,7 +82,6 @@ parse_args() {
       verbose=true
       ;;
     '--')
-      # TODO: make sure that this works with args passed to any file
       shift
       break
       ;;
