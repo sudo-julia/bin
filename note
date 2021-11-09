@@ -23,7 +23,7 @@ def create_note(file, editor):
 def get_notes(note_dir):
     """return a dict of all notes in the note_dir {note_name: note_location}"""
     notes = {}
-    for note in Path(note_dir).glob("*"):
+    for note in Path(note_dir).iterdir():
         note = Path(note)
         if not note.is_file():
             continue
