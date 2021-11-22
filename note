@@ -35,7 +35,7 @@ def list_notes(note_dir):
     """list all available notes"""
     notes = get_notes(note_dir)
     for note in notes:
-        print(note)
+        print(note.split(".")[0])
 
 
 def select_note(note_dir, prompt):
@@ -67,9 +67,22 @@ def select_note(note_dir, prompt):
     return notes[selected_note]
 
 
-def print_error(msg):
+def view_note(note_name):
+    """view a note"""
+    try:
+        with open(note_name, encoding="utf-8") as note:
+            note_content = note.read()
+            print(note_content)
+    except FileNotFoundError:
+        print_error(f"{note_name} does not exist")
+        raise SystemExit(1)
+    except PermissionError as err:
+        raise err
+
+
+def print_error(msg, warning="ERR"):
     """print an error message"""
-    print(msg, file=sys.stderr)
+    print(f"[{warning}] {msg}", file=sys.stderr)
 
 
 def main():
@@ -81,6 +94,9 @@ def main():
     )
     actions.add_argument(
         "-e", "--edit", action="store_true", help="Edit an existing note"
+    )
+    actions.add_argument(
+        "-v", "--view", action="store_true", help="View an existing note"
     )
     parser.add_argument(
         "-f",
@@ -124,6 +140,9 @@ def main():
         raise SystemExit
     else:
         note = f"{args.note_dir}/{args.note}.{args.filetype}"
+        if args.view:
+            view_note(note)
+            raise SystemExit
 
     create_note(note, args.editor)
 
