@@ -50,11 +50,8 @@ some of the scripts.
 - [`pyformat`](./pyformat):
   formats and lints a python file
 
--[`python-gitignore`](./python-gitignore):
-creates a `.gitignore` for a Python project in the current directory
-
-- [`spotlight`](./spotlight):
-  a searcher that will eventually mimic the spotlight search in OSX
+- [`python-gitignore`](./python-gitignore):
+  creates a `.gitignore` for a Python project in the current directory
 
 - [`startups`](./startups):
   programs that get run every time my computer starts

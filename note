@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """create or edit a note file"""
+from __future__ import annotations
 import argparse
 from datetime import date
 from os import getenv
@@ -9,7 +10,7 @@ import sys
 from tempfile import NamedTemporaryFile
 
 
-def create_note(file, editor):
+def create_note(file: str, editor: str) -> None:
     """create a note"""
     try:
         Path(file).parent.mkdir(parents=True, exist_ok=True)
@@ -20,29 +21,28 @@ def create_note(file, editor):
         raise NotImplementedError from err
 
 
-def get_notes(note_dir):
+def get_notes(note_dir: str) -> dict[str, str]:
     """return a dict of all notes in the note_dir {note_name: note_location}"""
-    notes = {}
+    notes: dict = {}
     for note in Path(note_dir).iterdir():
-        note = Path(note)
         if not note.is_file():
             continue
         notes[note.name] = str(note.resolve())
     return notes
 
 
-def list_notes(note_dir):
+def list_notes(note_dir: str) -> None:
     """list all available notes"""
-    notes = get_notes(note_dir)
+    notes: dict[str, str] = get_notes(note_dir)
     for note in notes:
         print(note.split(".")[0])
 
 
-def select_note(note_dir, prompt):
+def select_note(note_dir: str, prompt: str) -> str:
     """select a note"""
-    notes = get_notes(note_dir)
-    selected_note = ""
-    cmd = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{{}}'"
+    notes: dict[str, str] = get_notes(note_dir)
+    selected_note: str = ""
+    cmd: str = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{{}}'"
     with NamedTemporaryFile(mode="w+") as tmpfile:
         try:
             with open(tmpfile.name, "w+", encoding="utf-8") as tmp:
@@ -50,7 +50,7 @@ def select_note(note_dir, prompt):
                 for note in notes:
                     tmp.write(note + "\n")
                 tmp.seek(0)
-                selected_note = (
+                selected_note: str = (
                     subprocess.check_output(
                         cmd.format(tmpfile.name, prompt, note_dir),
                         shell=True,
@@ -67,11 +67,11 @@ def select_note(note_dir, prompt):
     return notes[selected_note]
 
 
-def view_note(note_name):
+def view_note(note_name: str):
     """view a note"""
     try:
         with open(note_name, encoding="utf-8") as note:
-            note_content = note.read()
+            note_content: str = note.read()
             print(note_content)
     except FileNotFoundError:
         print_error(f"{note_name} does not exist")
@@ -80,14 +80,14 @@ def view_note(note_name):
         raise err
 
 
-def print_error(msg, warning="ERR"):
+def print_error(msg: str, warning: str = "ERR") -> None:
     """print an error message"""
     print(f"[{warning}] {msg}", file=sys.stderr)
 
 
 def main():
     """main"""
-    parser = argparse.ArgumentParser()
+    parser: argparse.ArgumentParser = argparse.ArgumentParser()
     actions = parser.add_mutually_exclusive_group()
     actions.add_argument(
         "-d", "--delete", action="store_true", help="Delete an existing note"
@@ -124,23 +124,24 @@ def main():
         help="The name of the note (default: today's date)",
     )
 
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
     if args.delete:
         try:
-            note = select_note(args.note_dir, "delete > ")
+            note: str = select_note(args.note_dir, "delete > ")
             Path(note).unlink()
             print(f"Deleted '{note}'")
             return
         except PermissionError as err:
             raise PermissionError from err
     elif args.edit:
-        note = select_note(args.note_dir, "edit > ")
+        note: str = select_note(args.note_dir, "edit > ")
     elif args.list:
         list_notes(args.note_dir)
         raise SystemExit
     else:
-        note = f"{args.note_dir}/{args.note}.{args.filetype}"
+        note: str = f"{args.note_dir}/{args.note}.{args.filetype}"
         if args.view:
+            # TODO: handle mismatched filetypes
             view_note(note)
             raise SystemExit
 

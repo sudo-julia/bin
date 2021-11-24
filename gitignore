@@ -19,7 +19,7 @@ except ImportError:
 def dir_yield(path: Path):
     """recursively yield from all directories in the gitignore repo"""
     for entry in path.iterdir():
-        if entry.is_dir() and not "git" in entry.name:
+        if entry.is_dir() and "git" not in entry.name:
             yield from dir_yield(entry.resolve())
         elif not entry.name.endswith(".gitignore"):
             continue
@@ -38,20 +38,19 @@ def get_gitignores():
                 check=True,
             )
             print(f"gitignores cloned to '{GI_DIR}'")
-        return
     except PermissionError as err:
         raise NotImplementedError from err
     except subprocess.CalledProcessError as err:
         raise NotImplementedError from err
 
 
-def select_gitignore(options):
+def select_gitignore(options: dict[str, Path]) -> str:
     """interactively select a gitignore with fzf"""
     tmpfile = NamedTemporaryFile(mode="w+")
-    chosen = ""
+    chosen: str = ""
     try:
         # add options to file to pipe into fzf
-        with open(tmpfile.name, "w+") as tmp:
+        with open(tmpfile.name, "w+", encoding="utf-8") as tmp:
             for lang in options:
                 tmp.write(lang + "\n")
             tmp.seek(0)
@@ -76,13 +75,13 @@ def main():
     """select a gitignore"""
     # dict comprehension where key is the filename w/o gitignore and value is file path
     get_gitignores()
-    gitignores = {
+    gitignores: dict[str, Path] = {
         f.name.replace(".gitignore", ""): f.resolve() for f in dir_yield(GI_DIR)
     }
 
     # use argument if one is provided, otherwise choose interactively
     try:
-        chosen = sys.argv[1]
+        chosen: str = sys.argv[1]
     except IndexError:
         chosen = select_gitignore(gitignores)
 
