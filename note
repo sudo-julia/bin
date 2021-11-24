@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""create or edit a note file"""
+"""Work with notes"""
 from __future__ import annotations
 import argparse
 from datetime import date
@@ -10,83 +10,116 @@ import sys
 from tempfile import NamedTemporaryFile
 
 
-def create_note(file: str, editor: str) -> None:
-    """create a note"""
-    try:
-        Path(file).parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run([editor, "--", file], check=True)
-    except PermissionError as err:
-        raise PermissionError from err
-    except subprocess.CalledProcessError as err:
-        raise NotImplementedError from err
+class Note:
+    """Class to store details and modification methods of a note
 
+    Attributes:
+        note_name:  The name of the note
+        filetype: The file extension of the note (md, txt, etc)
+        note_dir: The directory that the note is located in
+    """
 
-def get_notes(note_dir: str) -> dict[str, str]:
-    """return a dict of all notes in the note_dir {note_name: note_location}"""
-    notes: dict = {}
-    for note in Path(note_dir).iterdir():
-        if not note.is_file():
-            continue
-        notes[note.name] = str(note.resolve())
-    return notes
+    def __init__(self, note_name: str, filetype: str, note_dir: str):
+        """Initialize variables"""
+        self.note_name = note_name
+        self.filetype = filetype
+        self.note_dir = note_dir
+        self.file: Path = Path(f"{self.note_dir}/{self.note_name}.{self.filetype}")
 
+    def create_note(self, editor: str) -> None:
+        """Creates a note
 
-def list_notes(note_dir: str) -> None:
-    """list all available notes"""
-    notes: dict[str, str] = get_notes(note_dir)
-    for note in notes:
-        print(note.split(".")[0])
-
-
-def select_note(note_dir: str, prompt: str) -> str:
-    """select a note"""
-    notes: dict[str, str] = get_notes(note_dir)
-    selected_note: str = ""
-    cmd: str = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{{}}'"
-    with NamedTemporaryFile(mode="w+") as tmpfile:
+        Attributes:
+            editor: The name of the text editor to use for the note
+        """
         try:
-            with open(tmpfile.name, "w+", encoding="utf-8") as tmp:
+            self.file.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run([editor, "--", self.file], check=True)
+        except PermissionError as err:
+            raise PermissionError from err
+        except subprocess.CalledProcessError as err:
+            raise NotImplementedError from err
+
+    def get_notes(self) -> dict[str, str]:
+        """Gets a dictionary of all available notes in note_dir
+
+        Returns:
+           A dictionary where the keys are note names and the values are strings to the
+           note's filepath
+        """
+        notes: dict = {}
+        for note in Path(self.note_dir).iterdir():
+            if not note.is_file():
+                continue
+            notes[note.name] = str(note.resolve())
+        return notes
+
+    def list_notes(self) -> None:
+        """Prints all notes available in note_dir"""
+        notes: dict[str, str] = self.get_notes()
+        for note in notes:
+            print(note.split(".")[0])
+
+    def select_note(self, prompt: str) -> Path:
+        """Prompts the user to select a note from note_dir with fzf
+
+        Attributes:
+            prompt: The prompt for fzf to use during selection
+        Returns:
+            A Path object of the note
+        """
+        notes: dict[str, str] = self.get_notes()
+        selected_note: str = ""
+        cmd: str = "cat {} | fzf +m --ansi --prompt='{}' --preview='cat {}/{{}}'"
+        with NamedTemporaryFile(mode="w+", encoding="utf-8") as tmpfile:
+            try:
                 # add note options to tmpfile for piping
                 for note in notes:
-                    tmp.write(note + "\n")
-                tmp.seek(0)
+                    tmpfile.write(note + "\n")
+                tmpfile.seek(0)
                 selected_note: str = (
                     subprocess.check_output(
-                        cmd.format(tmpfile.name, prompt, note_dir),
+                        cmd.format(tmpfile.name, prompt, self.note_dir),
                         shell=True,
                     )
                     .decode(sys.stdout.encoding)
                     .strip()
                 )
-        except subprocess.CalledProcessError as err:
-            # exit peacefully if the user doesn't select a note
-            if not selected_note:
-                sys.exit(0)
+            except subprocess.CalledProcessError as err:
+                # exit peacefully if the user doesn't select a note
+                if not selected_note:
+                    raise SystemExit from err
+                raise err
+        return Path(notes[selected_note])
+
+    def view_note(self) -> None:
+        """Prints a note to the terminal"""
+        try:
+            with self.file.open(encoding="utf-8") as file:
+                print(file.read())
+        except FileNotFoundError as err:
+            print_error(f"{self.file} does not exist")
+            raise SystemExit(1) from err
+        except PermissionError as err:
             raise err
-
-    return notes[selected_note]
-
-
-def view_note(note_name: str):
-    """view a note"""
-    try:
-        with open(note_name, encoding="utf-8") as note:
-            note_content: str = note.read()
-            print(note_content)
-    except FileNotFoundError:
-        print_error(f"{note_name} does not exist")
-        raise SystemExit(1)
-    except PermissionError as err:
-        raise err
 
 
 def print_error(msg: str, warning: str = "ERR") -> None:
-    """print an error message"""
+    """Prints an error message to stderr
+
+    Attributes:
+        msg: The message to print to stderr
+        warning: The warning to prepend to the message, defaults to 'ERR'
+    """
     print(f"[{warning}] {msg}", file=sys.stderr)
 
 
-def main():
-    """main"""
+def parse_args() -> argparse.Namespace:
+    """Parses arguments with argparse
+
+    Returns:
+        The namespace of arguments
+    """
     parser: argparse.ArgumentParser = argparse.ArgumentParser()
     actions = parser.add_mutually_exclusive_group()
     actions.add_argument(
@@ -124,28 +157,34 @@ def main():
         help="The name of the note (default: today's date)",
     )
 
-    args: argparse.Namespace = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    """Main control flow for the program"""
+    args: argparse.Namespace = parse_args()
+    note: Note = Note(args.note, args.filetype, args.note_dir)
+
     if args.delete:
         try:
-            note: str = select_note(args.note_dir, "delete > ")
-            Path(note).unlink()
-            print(f"Deleted '{note}'")
+            note.file = note.select_note("delete > ")
+            note.file.unlink()
+            print(f"Deleted '{note.file}'")
             return
         except PermissionError as err:
             raise PermissionError from err
     elif args.edit:
-        note: str = select_note(args.note_dir, "edit > ")
+        note.file = note.select_note("edit > ")
     elif args.list:
-        list_notes(args.note_dir)
+        note.list_notes()
         raise SystemExit
     else:
-        note: str = f"{args.note_dir}/{args.note}.{args.filetype}"
         if args.view:
             # TODO: handle mismatched filetypes
-            view_note(note)
+            note.view_note()
             raise SystemExit
 
-    create_note(note, args.editor)
+    note.create_note(args.editor)
 
 
 if __name__ == "__main__":
