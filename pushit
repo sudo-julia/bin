@@ -1,0 +1,25 @@
+#!/bin/sh
+
+main() {
+  git status
+  printf -- 'Commit and push? [Y/n] '
+  read -r user_confirmation
+
+  case "$user_confirmation" in
+    'y' | 'Y' | 'yes' | 'Yes' | 'YES')
+      if [ "$1" ]; then
+        git commit -m "$1" &&
+          git push
+      else
+        git commit &&
+          git push
+      fi
+      ;;
+    *)
+      printf -- 'Aborting.\n'
+      exit
+      ;;
+  esac
+}
+
+main "$@"

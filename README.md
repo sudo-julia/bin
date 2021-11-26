@@ -44,6 +44,10 @@ some of the scripts.
 - [`pint`](./pint):
   interfaces with `yay` for interactive package management
 
+- [`pushit`](./pushit):
+  checks the git status of the current repository and commits/pushes based off of
+  user input
+
 - [`pvw`](./pvw):
   previews files as pdfs
 
