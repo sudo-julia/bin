@@ -40,8 +40,10 @@ update_extras() {
     sudo -u "${user}" /usr/bin/env tldr --update |
       sed 's/ cache/ tldr cache/'
   fi
-  update_vim_plugins
+  update_neovim
+  update_neovim_plugins
   update_luarocks
+  update_pip
   remove_orphans
   clear_paccache
   "${user_home}/bin/update-mirrors"
@@ -63,6 +65,16 @@ update_luarocks() {
     luarocks install "$pkg"
   done
   printf -- 'Luarocks packages upgraded.\n'
+}
+
+update_neovim() {
+  # update neovim
+  printf -- 'Updating neovim...\n'
+  (
+  cd "${user_home}/build/neovim/" && rm -rf "${user_home}/build/neovim/build"
+  make CMAKE_BUILD_TYPE=RelWithDebInfo && make install
+  )
+  printf -- 'Neovim successfully updated\n'
 }
 
 update_pip() {
@@ -89,11 +101,11 @@ update_pip() {
   return 0
 }
 
-update_vim_plugins() {
+update_neovim_plugins() {
   # set your vim plugin manager's commands here
-  printf -- 'Updating NeoVim plugins...\n'
+  printf -- 'Updating neovim plugins...\n'
   sudo -u "${user}" nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
-  printf -- 'NeoVim plugins updated.\n'
+  printf -- 'Neovim plugins updated.\n'
 }
 
 remove_orphans() {
