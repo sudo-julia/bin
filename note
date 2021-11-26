@@ -24,10 +24,11 @@ class Note:
         self.note_name = note_name
         self.filetype = filetype
         self.note_dir = note_dir
+        self.file: Path
         if "." in self.note_name:
-            self.file: Path = Path(f"{self.note_dir}/{self.note_name}")
+            self.file = Path(f"{self.note_dir}/{self.note_name}")
         else:
-            self.file: Path = Path(f"{self.note_dir}/{self.note_name}.{self.filetype}")
+            self.file = Path(f"{self.note_dir}/{self.note_name}.{self.filetype}")
 
     def create_note(self, editor: str) -> None:
         """Creates a note
@@ -81,7 +82,7 @@ class Note:
                 for note in notes:
                     tmpfile.write(note + "\n")
                 tmpfile.seek(0)
-                selected_note: str = (
+                selected_note = (
                     subprocess.check_output(
                         cmd.format(tmpfile.name, prompt, self.note_dir),
                         shell=True,

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 main() {
   git status
   printf -- 'Commit and push? [Y/n] '
