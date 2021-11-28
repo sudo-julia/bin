@@ -13,7 +13,8 @@ some of the scripts.
   deletes broken symlinks
 
 - [`cr`](./cr):
-  compiles and runs a c program with any other arguments provided
+  compiles and runs a c program with any other arguments provided.
+  _requires [penlight](https://github.com/lunarmodules/Penlight)_
 
 - [`dmsn`](./dmsn):
   get the dimensions of an image
