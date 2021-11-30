@@ -15,7 +15,6 @@ local function parse_args()
     -t, --tmp        Compile the program to a temporary directory.
     <file> (string)  The file to compile and run.
   ]])
-
 	return args
 end
 
@@ -85,6 +84,8 @@ local function main()
 		if not success then
 			die("Compilation failed. Exiting.")
 		end
+	else
+		print("Found an up-to-date outfile; skipping compilation...")
 	end
 
 	local success, stdout = run(outfile, args.quiet)

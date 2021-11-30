@@ -27,7 +27,7 @@ update_system() {
   get_user_input \
     ":: Also update AUR packages? [Y/n] " \
     "sudo -u ${user} ${aur_helper} -Syua" \
-    "Skipping AUR packages"
+    " Skipping AUR packages"
 }
 
 update_extras() {
@@ -43,7 +43,7 @@ update_extras() {
   update_neovim
   update_neovim_plugins
   update_luarocks
-  update_pip
+  # update_pip
   remove_orphans
   clear_paccache
   "${user_home}/bin/update-mirrors"
@@ -116,7 +116,7 @@ remove_orphans() {
     get_user_input \
       ":: Remove orphan packages? [Y/n] " \
       "pacman -Rns --noconfirm $(pacman -Qdtq)" \
-      "Leaving orphaned packages."
+      " Leaving orphaned packages."
   else
     printf -- 'No orphaned packages.\n'
   fi
@@ -144,7 +144,7 @@ check_last_date() {
     get_user_input \
       ":: Update extra programs? " \
       "update_extras" \
-      "Skipping extra updates."
+      " Skipping extra updates"
   elif [[ -n "${last_date}" ]] && [[ ! -s "${last_date}" ]]; then
     # if variable is set but file doesn't exist, create it
     echo '0000-00-00' >"${last_date}"

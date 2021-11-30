@@ -134,7 +134,16 @@ def parse_args() -> argparse.Namespace:
         "-e", "--edit", action="store_true", help="Edit an existing note"
     )
     actions.add_argument(
+        "-l", "--list", action="store_true", help="List all created notes"
+    )
+    actions.add_argument(
         "-v", "--view", action="store_true", help="View an existing note"
+    )
+    # TODO: implement
+    parser.add_argument(
+        "--decrypt",
+        action="store_true",
+        help="Decrypt a note before opening",
     )
     parser.add_argument(
         "-f",
@@ -147,8 +156,11 @@ def parse_args() -> argparse.Namespace:
         default=getenv("EDITOR"),
         help="Chose the editor to use. (default: $EDITOR)",
     )
-    actions.add_argument(
-        "-l", "--list", action="store_true", help="List all created notes"
+    # TODO: implement
+    parser.add_argument(
+        "--encrypt",
+        action="store_true",
+        help="Encrypt a note with a password after writing",
     )
     parser.add_argument(
         "--note_dir",
