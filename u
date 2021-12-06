@@ -10,7 +10,7 @@ aur_helper="yay"
 pacdiff_run=0 # dont change this
 
 # get the current user to execute commands as
-user="${SUDO_USER}"
+user="$SUDO_USER"
 
 # find the user's home dir for script locations
 user_home="$(getent passwd "${SUDO_USER}" | cut -d':' -f6)"
@@ -34,10 +34,10 @@ update_extras() {
   # update extra programs and non-arch package managers
   # if you don't want to use any of these, simply delete or comment-out the line
   if [[ -s "${user_home}/bin/upgrade-zinit" ]]; then
-    sudo -u "${user}" zsh "${user_home}/bin/upgrade-zinit"
+    sudo -u "$user" zsh "${user_home}/bin/upgrade-zinit"
   fi
   if hash tldr >/dev/null; then
-    sudo -u "${user}" /usr/bin/env tldr --update |
+    sudo -u "$user" /usr/bin/env tldr --update |
       sed 's/ cache/ tldr cache/'
   fi
   update_neovim
@@ -72,7 +72,8 @@ update_neovim() {
   printf -- 'Updating neovim...\n'
   (
   cd "${user_home}/build/neovim/" && rm -rf "${user_home}/build/neovim/build"
-  make CMAKE_BUILD_TYPE=RelWithDebInfo && make install
+  git pull &&
+  sudo -u "$user" make CMAKE_BUILD_TYPE=RelWithDebInfo && make install
   )
   printf -- 'Neovim successfully updated\n'
 }
@@ -93,7 +94,7 @@ update_pip() {
   printf -- '%s\n' "Upgrading pip packages..."
   env pip list --user -o |
     grep -v '\^-e' |
-    tee "${output_loc} " |
+    tee "$output_loc " |
     grep -Ev 'sdist|--|Latest\s' |
     cut -d' ' -f1 |
     xargs -r -n1 env pip install --user -U &&
@@ -104,7 +105,7 @@ update_pip() {
 update_neovim_plugins() {
   # set your vim plugin manager's commands here
   printf -- 'Updating neovim plugins...\n'
-  sudo -u "${user}" nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
+  sudo -u "$user" nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
   printf -- 'Neovim plugins updated.\n'
 }
 
@@ -139,25 +140,25 @@ clear_paccache() {
 
 check_last_date() {
   # check if it's time to run update_extras
-  if [[ -z "${last_date}" ]]; then
+  if [[ -z "$last_date" ]]; then
     # if the user doesn't want to make last_date file
     get_user_input \
       ":: Update extra programs? " \
       "update_extras" \
       " Skipping extra updates"
-  elif [[ -n "${last_date}" ]] && [[ ! -s "${last_date}" ]]; then
+  elif [[ -n "$last_date" ]] && [[ ! -s "$last_date" ]]; then
     # if variable is set but file doesn't exist, create it
-    echo '0000-00-00' >"${last_date}"
-  elif [[ -s "${last_date}" ]]; then
+    echo '0000-00-00' >"$last_date"
+  elif [[ -s "$last_date" ]]; then
     # check date to see if it's been a week since the last update
     # TODO: swap last_date and last_date_file
     local last_date_file current_date next_date future_date
-    last_date_file="$(cat "${last_date}")"
+    last_date_file="$(cat "$last_date")"
     current_date="$(date "+%Y-%m-%d")"
-    next_date="$(env python3 "${user_home}/bin/week_from.py" "${last_date_file}")"
-    future_date="$(env python3 "${user_home}/bin/week_from.py" "${current_date}")"
+    next_date="$(env python3 "${user_home}/bin/week_from.py" "$last_date_file")"
+    future_date="$(env python3 "${user_home}/bin/week_from.py" "$current_date")"
     if (("${current_date//-/}" >= "${next_date//-/}")); then
-      update_extras "${current_date}" "${future_date}"
+      update_extras "$current_date" "$future_date"
     fi
   fi
 }

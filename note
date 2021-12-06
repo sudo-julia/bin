@@ -52,7 +52,8 @@ class Note:
            note's filepath
         """
         notes: dict = {}
-        for note in Path(self.note_dir).iterdir():
+        # sort the notes so they're organized by date, more recent at the bottom
+        for note in sorted(Path(self.note_dir).iterdir(), reverse=True):
             if not note.is_file():
                 continue
             notes[note.name] = str(note.resolve())

@@ -2,7 +2,7 @@
 .rExclude
 .rInclude
 archives/
-bash-language-server
+*-language-server
 chromedriver
 cr2
 extras/
