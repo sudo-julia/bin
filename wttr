@@ -52,7 +52,7 @@ wttr() {
     args+=" --data-urlencode $p "
   done
   curl -fGsS -H "Accept-Language: ${LANG%_*}" \
-    $args --compressed "wttr.in/${location}?${2:+}"
+    $args --compressed "v2d.wttr.in/${location}?${2:+}"
 }
 
 wttr "$@"

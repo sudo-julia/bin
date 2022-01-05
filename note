@@ -141,11 +141,11 @@ def parse_args() -> argparse.Namespace:
         "-v", "--view", action="store_true", help="View an existing note"
     )
     # TODO: implement
-    parser.add_argument(
-        "--decrypt",
-        action="store_true",
-        help="Decrypt a note before opening",
-    )
+    # parser.add_argument(
+    #     "--decrypt",
+    #     action="store_true",
+    #     help="Decrypt a note before opening",
+    # )
     parser.add_argument(
         "-f",
         "--filetype",
@@ -158,11 +158,11 @@ def parse_args() -> argparse.Namespace:
         help="Chose the editor to use. (default: $EDITOR)",
     )
     # TODO: implement
-    parser.add_argument(
-        "--encrypt",
-        action="store_true",
-        help="Encrypt a note with a password after writing",
-    )
+    # parser.add_argument(
+    #     "--encrypt",
+    #     action="store_true",
+    #     help="Encrypt a note with a password after writing",
+    # )
     parser.add_argument(
         "--note_dir",
         default=f"{getenv('HOME')}/documents/personal/notes",

@@ -40,7 +40,7 @@ update_extras() {
     sudo -u "$user" /usr/bin/env tldr --update |
       sed 's/ cache/ tldr cache/'
   fi
-  update_neovim
+  # update_neovim
   update_neovim_plugins
   update_luarocks
   # update_pip
@@ -72,7 +72,7 @@ update_neovim() {
   printf -- 'Updating neovim...\n'
   (
   cd "${user_home}/build/neovim/" && rm -rf "${user_home}/build/neovim/build"
-  git pull &&
+  pwd && git pull &&
   sudo -u "$user" make CMAKE_BUILD_TYPE=RelWithDebInfo && make install
   )
   printf -- 'Neovim successfully updated\n'
@@ -201,6 +201,7 @@ main() {
   update_system
   check_last_date
   print_pacdiff
+  notify-send "Update complete!"
 }
 
 main
