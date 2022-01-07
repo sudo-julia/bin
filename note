@@ -110,6 +110,28 @@ class Note:
             raise err
 
 
+def valid_filename(filename: str) -> bool:
+    """Checks a filename for reserved characters"""
+    if filename[0] == "-":
+        print_error("Filename cannot begin with a dash!")
+        return False
+    if len(filename) > 255:
+        print_error("Filename cannot exceed 255 characters!")
+    for reserved_char in ("/", "\0", ">", "<", "|", ":", "&", ";", "*", "!", "'", '"', "$"):
+        if reserved_char in filename:
+            print_error(f"Filename cannot contain '{reserved_char}'!")
+            return False
+    return True
+
+
+def get_new_name(old_name: str) -> str:
+    """Gets the new name of 'oldname' from user"""
+    while True:
+        new_name = input(f"Rename '{old_name}' to: ").casefold().strip()
+        if not valid_filename(new_name):
+            continue
+        return new_name
+
 def print_error(msg: str, warning: str = "ERR") -> None:
     """Prints an error message to stderr
 
@@ -137,6 +159,7 @@ def parse_args() -> argparse.Namespace:
     actions.add_argument(
         "-l", "--list", action="store_true", help="List all created notes"
     )
+    actions.add_argument("-r", "--rename", action="store_true", help="Rename a note")
     actions.add_argument(
         "-v", "--view", action="store_true", help="View an existing note"
     )
@@ -181,25 +204,36 @@ def parse_args() -> argparse.Namespace:
 def main():
     """Main control flow for the program"""
     args: argparse.Namespace = parse_args()
+    if not valid_filename(args.note):
+        raise SystemExit(1)
     note: Note = Note(args.note, args.filetype, args.note_dir)
 
-    if args.delete:
-        try:
-            note.file = note.select_note("delete > ")
-            note.file.unlink()
-            print(f"Deleted '{note.file}'")
-            return
-        except PermissionError as err:
-            raise PermissionError from err
-    elif args.edit:
-        note.file = note.select_note("edit > ")
-    elif args.list:
-        note.list_notes()
-        raise SystemExit
-    else:
-        if args.view:
-            note.view_note()
+    try:
+        if args.delete:
+            try:
+                note.file = note.select_note("delete > ")
+                note.file.unlink()
+                print(f"Deleted '{note.file}'")
+                return
+            except PermissionError as err:
+                raise PermissionError from err
+        elif args.edit:
+            note.file = note.select_note("edit > ")
+        elif args.list:
+            note.list_notes()
             raise SystemExit
+        elif args.rename:
+            note.file = note.select_note("rename > ")
+            note.note_name = note.file.name
+            new_name = get_new_name(note.note_name)
+            print(new_name)
+            raise SystemExit
+        else:
+            if args.view:
+                note.view_note()
+                raise SystemExit
+    except KeyboardInterrupt:
+        raise SystemExit
 
     note.create_note(args.editor)
 
