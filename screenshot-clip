@@ -1,0 +1,4 @@
+#!/bin/sh
+pkill picom
+maim -su -m 10 | xclip -selection clipboard -target image/png
+picom-restart.sh

@@ -112,6 +112,9 @@ class Note:
 
 def valid_filename(filename: str) -> bool:
     """Checks a filename for reserved characters"""
+    if not filename:
+        print_error("Empty input!")
+        return False
     if filename[0] == "-":
         print_error("Filename cannot begin with a dash!")
         return False
@@ -225,14 +228,16 @@ def main():
         elif args.rename:
             note.file = note.select_note("rename > ")
             note.note_name = note.file.name
-            new_name = get_new_name(note.note_name)
-            print(new_name)
+            new_file = f"{note.note_dir}/{get_new_name(note.note_name)}"
+            note.file.rename(new_file)
+            print(f"{note.file} -> {new_file}")
             raise SystemExit
         else:
             if args.view:
                 note.view_note()
                 raise SystemExit
     except KeyboardInterrupt:
+        print_error("\nExiting.", "")
         raise SystemExit
 
     note.create_note(args.editor)
