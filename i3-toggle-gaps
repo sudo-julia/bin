@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # shellcheck disable=SC2016
 config_file="${XDG_CONFIG_HOME}/i3/config"
@@ -22,8 +22,8 @@ if grep -q '^workspace \$' "$config_file"; then
 else
     uncomment_lines
 fi
-
-if ! xprop &>/dev/null; then
-    i3-msg "reload" >/dev/null
-    notify-send "i3 gaps ${gap_status}"
-fi
+#
+# if ! xprop &>/dev/null; then
+#     i3-msg "reload" >/dev/null
+#     notify-send "i3 gaps ${gap_status}"
+# fi

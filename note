@@ -135,6 +135,13 @@ def get_new_name(old_name: str) -> str:
             continue
         return new_name
 
+def get_note_dir() -> str:
+    """Gets the note dir"""
+    if not (note_dir := getenv("note_dir")):
+        note_dir = f"{getenv('HOME')}"
+    getenv('HOME')
+
+
 def print_error(msg: str, warning: str = "ERR") -> None:
     """Prints an error message to stderr
 

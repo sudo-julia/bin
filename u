@@ -41,7 +41,7 @@ update_extras() {
       sed 's/ cache/ tldr cache/'
   fi
   # update_neovim
-  update_neovim_plugins
+  # update_neovim_plugins
   update_luarocks
   # update_pip
   remove_orphans
@@ -201,7 +201,6 @@ main() {
   update_system
   check_last_date
   print_pacdiff
-  notify-send "Update complete!"
 }
 
 main
